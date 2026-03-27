@@ -69,13 +69,10 @@
         app:layout_constraintTop_toBottomOf="@id/search_filter_container">
 
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Map View Placeholder"
-            android:textColor="#777777"
-            tools:ignore="HardcodedText" />
+        <com.google.android.gms.maps.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
     </FrameLayout>
 
@@ -94,7 +91,7 @@
             android:id="@+id/btn_top_rated"
             style="@style/Widget.Material3.Button"
             android:layout_width="0dp"
-            android:layout_height="100dp"
+            android:layout_height="80dp"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
             android:padding="12dp"
@@ -102,19 +99,20 @@
             android:textColor="@color/white"
             android:textSize="14sp"
             android:textStyle="bold"
+            android:gravity="center"
             app:backgroundTint="@color/blue"
             app:cornerRadius="20dp"
-            app:icon="@android:drawable/btn_star_big_on"
-            app:iconGravity="top"
+            app:icon="@drawable/star_solid_full"
+            app:iconGravity="textStart"
             app:iconPadding="8dp"
-            app:iconSize="42dp"
+            app:iconSize="32dp"
             app:iconTint="@color/white" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_closest"
             style="@style/Widget.Material3.Button"
             android:layout_width="0dp"
-            android:layout_height="100dp"
+            android:layout_height="80dp"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:padding="12dp"
@@ -122,12 +120,13 @@
             android:textColor="@color/white"
             android:textSize="14sp"
             android:textStyle="bold"
+            android:gravity="center"
             app:backgroundTint="@color/blue"
             app:cornerRadius="20dp"
-            app:icon="@drawable/outline_arrow_drop_down_24"
-            app:iconGravity="top"
+            app:icon="@drawable/magnifying_glass_location_solid_full"
+            app:iconGravity="textStart"
             app:iconPadding="8dp"
-            app:iconSize="42dp"
+            app:iconSize="32dp"
             app:iconTint="@color/white" />
 
     </LinearLayout>
