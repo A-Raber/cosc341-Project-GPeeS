@@ -1,6 +1,8 @@
 package com.example.gpees;
 
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.view.Window;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -25,12 +27,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        BathroomDialog dialog = new BathroomDialog();
+        dialog.show(getSupportFragmentManager(), "Bathroom Dialog");
+
 
         // Initialize MapView
         mapView = findViewById(R.id.mapView);
