@@ -1,6 +1,8 @@
 package com.example.gpees;
 
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.view.Window;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,5 +22,9 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        BathroomDialog dialog = new BathroomDialog();
+        dialog.show(getSupportFragmentManager(), "Bathroom Dialog");
+
     }
 }

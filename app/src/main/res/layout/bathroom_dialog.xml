@@ -7,13 +7,12 @@
 
     <TextView
         android:id="@+id/bathroomNameText"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="64dp"
         android:gravity="center_vertical"
         android:paddingStart="16dp"
         android:text="Bathroom name"
         android:textSize="34sp"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -51,15 +50,16 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="821dp"
+        android:layout_height="0dp"
         android:layout_marginTop="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ratingBar">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical"
             android:padding="16dp">
 
@@ -170,10 +170,12 @@
                     android:layout_marginBottom="4dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
+
                     <TextView
                         android:layout_width="16dp"
                         android:layout_height="wrap_content"
                         android:text="5" />
+
                     <ProgressBar
                         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
                         android:layout_width="match_parent"
@@ -188,10 +190,12 @@
                     android:layout_marginBottom="4dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
+
                     <TextView
                         android:layout_width="16dp"
                         android:layout_height="wrap_content"
                         android:text="4" />
+
                     <ProgressBar
                         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
                         android:layout_width="match_parent"
@@ -206,10 +210,12 @@
                     android:layout_marginBottom="4dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
+
                     <TextView
                         android:layout_width="16dp"
                         android:layout_height="wrap_content"
                         android:text="3" />
+
                     <ProgressBar
                         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
                         android:layout_width="match_parent"
@@ -224,10 +230,12 @@
                     android:layout_marginBottom="4dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
+
                     <TextView
                         android:layout_width="16dp"
                         android:layout_height="wrap_content"
                         android:text="2" />
+
                     <ProgressBar
                         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
                         android:layout_width="match_parent"
@@ -241,10 +249,12 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
+
                     <TextView
                         android:layout_width="16dp"
                         android:layout_height="wrap_content"
                         android:text="1" />
+
                     <ProgressBar
                         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
                         android:layout_width="match_parent"
@@ -306,9 +316,9 @@
                 android:id="@+id/commentsContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:layout_marginBottom="12dp"
                 android:background="@android:drawable/dialog_holo_light_frame"
-                android:layout_marginBottom="12dp">
+                android:orientation="vertical">
 
                 <TextView
                     android:layout_width="match_parent"
@@ -336,10 +346,10 @@
                 android:id="@+id/editComment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
                 android:hint="Add a comment..."
                 android:inputType="textMultiLine"
-                android:minLines="2"
-                android:layout_marginBottom="8dp" />
+                android:minLines="2" />
 
             <Button
                 android:id="@+id/btnSubmitComment"
@@ -352,4 +362,16 @@
         </LinearLayout>
 
     </ScrollView>
+
+    <Button
+        android:id="@+id/btnClose"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="7dp"
+        android:layout_marginEnd="16dp"
+        android:text="✕"
+        android:textSize="18sp"
+        android:padding="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
