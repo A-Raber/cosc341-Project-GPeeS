@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">GPeeS</string>
+    <string name="filter">FILTER</string>
+    <string name="search_hint">Search&#8230;</string>
+    <string name="top_rated">TOP RATED</string>
+    <string name="closest">CLOSEST</string>
+    <string name="cd_logo">Toilet App Logo</string>
+    <string name="cd_menu">Navigation Menu</string>
+    <string name="cd_toilet_location">Toilet Location</string>
+    <string name="cd_accessible_toilet_location">Accessible Toilet Location</string>
 </resources>
