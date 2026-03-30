@@ -1,8 +1,11 @@
 package com.example.gpees;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.Window;
+import android.widget.ImageButton;
+import android.widget.PopupMenu;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -34,9 +37,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return insets;
         });
 
-        BathroomDialog dialog = new BathroomDialog();
-        dialog.show(getSupportFragmentManager(), "Bathroom Dialog");
-
+        // Hamburger menu popup
+        ImageButton btnMenu = findViewById(R.id.btn_menu);
+        btnMenu.setOnClickListener(view -> {
+            PopupMenu popup = new PopupMenu(this, view);
+            popup.getMenuInflater().inflate(R.menu.menu_main, popup.getMenu());
+            popup.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.menu_profile) {
+                    startActivity(new Intent(this, ProfileActivity.class));
+                    return true;
+                } else if (item.getItemId() == R.id.menu_logout) {
+                    // Add logout logic here later
+                    return true;
+                }
+                return false;
+            });
+            popup.show();
+        });
 
         // Initialize MapView
         mapView = findViewById(R.id.mapView);
