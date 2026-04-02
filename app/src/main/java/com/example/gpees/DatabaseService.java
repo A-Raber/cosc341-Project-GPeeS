@@ -2,6 +2,7 @@ package com.example.gpees;
 
 import android.util.Log;
 
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -40,19 +41,17 @@ public class DatabaseService {
     }
 
     // Add a new bathroom (with empty reviews)
-
     public void addBathroom(Bathroom bathroom, WriteCallback callback) {
-        db.collection("bathrooms")
-                .add(bathroom)
-                .addOnSuccessListener(documentReference -> {
-                    bathroom.setId(documentReference.getId());
-                    callback.onSuccess();
-                })
-                .addOnFailureListener(e -> callback.onFailure(e));
+        DocumentReference ref = db.collection("bathrooms").document();
+        bathroom.setId(ref.getId());  // id gets assigned automatically
+        ref.set(bathroom)
+                .addOnSuccessListener(aVoid -> callback.onSuccess())
+                .addOnFailureListener(callback::onFailure);
     }
 
     // Read all bathrooms
 
+    // TODO: get rid of this. we don't need to pull ALL bathrooms at once
     public void getBathrooms(BathroomsCallback callback) {
         db.collection("bathrooms")
                 .get()
@@ -67,11 +66,11 @@ public class DatabaseService {
                     }
                     callback.onSuccess(bathrooms);
                 })
-                .addOnFailureListener(e -> callback.onFailure(e));
+                .addOnFailureListener(callback::onFailure);
     }
 
     // Read bathrooms within a lat and lng
-
+    // TODO: Refactor to use metres instead of long / lat
     public void getBathroomsInRange(double minLat, double maxLat, double minLng, double maxLng, BathroomsCallback callback) {
         db.collection("bathrooms")
                 .whereGreaterThan("latitude", minLat)
@@ -92,7 +91,7 @@ public class DatabaseService {
                     }
                     callback.onSuccess(bathrooms);
                 })
-                .addOnFailureListener(e -> callback.onFailure(e));
+                .addOnFailureListener(callback::onFailure);
     }
 
     // Read reviews for a bathroom
@@ -107,27 +106,34 @@ public class DatabaseService {
                     for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
                         Review review = doc.toObject(Review.class);
                         if (review != null) {
+                            review.setId(doc.getId());
                             reviews.add(review);
                         }
                     }
                     callback.onSuccess(reviews);
-                })
-                .addOnFailureListener(e -> callback.onFailure(e));
+                }).addOnFailureListener(callback::onFailure);
+
     }
 
     // Add a review to a bathroom
-
     public void addReview(String bathroomId, Review review, WriteCallback callback) {
-        db.collection("bathrooms")
+//        db.collection("bathrooms")
+//                .document(bathroomId)
+//                .collection("reviews")
+//                .add(review)
+//                .addOnSuccessListener(ref -> callback.onSuccess())
+//                .addOnFailureListener(e -> callback.onFailure(e));
+        DocumentReference ref = db.collection("bathrooms")
                 .document(bathroomId)
                 .collection("reviews")
-                .add(review)
-                .addOnSuccessListener(ref -> callback.onSuccess())
-                .addOnFailureListener(e -> callback.onFailure(e));
+                .document();
+        review.setId(ref.getId());  // id gets assigned automatically
+        ref.set(review)
+                .addOnSuccessListener(aVoid -> callback.onSuccess())
+                .addOnFailureListener(callback::onFailure);
     }
 
     // Read comments for a bathroom
-
     public void getComments(String bathroomId, CommentsCallback callback) {
         db.collection("bathrooms")
                 .document(bathroomId)
@@ -138,22 +144,26 @@ public class DatabaseService {
                     for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
                         Comment comment = doc.toObject(Comment.class);
                         if (comment != null) {
+                            comment.setId(doc.getId()); // Id gets assigned automatically
                             comments.add(comment);
                         }
                     }
                     callback.onSuccess(comments);
                 })
-                .addOnFailureListener(e -> callback.onFailure(e));
+                .addOnFailureListener(callback::onFailure);
     }
 
     // Add a comment to a bathroom
-
     public void addComment(String bathroomId, Comment comment, WriteCallback callback) {
-        db.collection("bathrooms")
+        DocumentReference ref = db.collection("bathrooms")
                 .document(bathroomId)
                 .collection("comments")
-                .add(comment)
-                .addOnSuccessListener(ref -> callback.onSuccess())
-                .addOnFailureListener(e -> callback.onFailure(e));
+                .document();
+        comment.setId(ref.getId());  // id gets assigned automatically
+        ref.set(comment)
+                .addOnSuccessListener(aVoid -> callback.onSuccess())
+                .addOnFailureListener(callback::onFailure);
     }
 }
+
+// TODO: Add deleteComment() and deleteReview() for admins and users
