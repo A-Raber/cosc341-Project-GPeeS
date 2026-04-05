@@ -8,4 +8,5 @@
     <string name="cd_menu">Navigation Menu</string>
     <string name="cd_toilet_location">Toilet Location</string>
     <string name="cd_accessible_toilet_location">Accessible Toilet Location</string>
+    <string name="bathroom_address_format">Address</string>
 </resources>

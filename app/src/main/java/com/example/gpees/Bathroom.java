@@ -1,10 +1,11 @@
 package com.example.gpees;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 // Java object used for each bathroom to be saved in fire base
-public class Bathroom {
+public class Bathroom implements Serializable {
     private String id;
     private String name;
     private String address;

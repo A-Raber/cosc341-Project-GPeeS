@@ -6,7 +6,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
-import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -30,6 +29,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.CancellationTokenSource;
@@ -70,10 +70,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(@NonNull GoogleMap map) {
         googleMap = map;
 
+        // Apply custom map style to hide POIs
+        try {
+            boolean success = googleMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                            this, R.raw.map_style));
+            if (!success) {
+                Log.e(TAG, "Style parsing failed.");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Can't find style. Error: ", e);
+        }
+
+        // Enable zoom controls (plus and minus buttons)
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
+
         // Set up marker click listener
         googleMap.setOnMarkerClickListener(marker -> {
-            if (marker.getTag() != null && marker.getTag().equals("bathroom")) {
-                BathroomDialog dialog = new BathroomDialog();
+            if (marker.getTag() instanceof Bathroom) {
+                Bathroom bathroom = (Bathroom) marker.getTag();
+                BathroomDialog dialog = BathroomDialog.newInstance(bathroom);
                 dialog.show(getSupportFragmentManager(), "BathroomDialog");
                 return true;
             }
@@ -130,6 +146,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onSuccess(List<Bathroom> bathrooms) {
                 // Clear old bathroom markers before adding new ones
                 googleMap.clear();
+                // Re-enable location dot after clear if permission exists
+                if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    googleMap.setMyLocationEnabled(true);
+                }
+
                 for (Bathroom bathroom : bathrooms) {
                     addBathroomMarker(bathroom);
                 }
@@ -159,7 +180,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .icon(getBitmapDescriptorFromVector(this, iconResId)));
 
         if (marker != null) {
-            marker.setTag("bathroom");
+            // Set the bathroom object as the tag
+            marker.setTag(bathroom);
         }
     }
 
