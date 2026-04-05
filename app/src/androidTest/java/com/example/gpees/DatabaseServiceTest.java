@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -140,7 +141,7 @@ public class DatabaseServiceTest {
         CountDownLatch latch = new CountDownLatch(1);
         final boolean[] passed = {false};
 
-        Review review = new Review("testuser", 4.0f, "Pretty clean!", "2025-08-01");
+        Review review = new Review("testuser", 4.0f, "Pretty clean!", new Date());
 
         databaseHelper.addReview(testBathroomId, review, new DatabaseService.WriteCallback() {
             @Override
@@ -204,7 +205,7 @@ public class DatabaseServiceTest {
         CountDownLatch latch = new CountDownLatch(1);
         final boolean[] passed = {false};
 
-        Comment comment = new Comment("testuser", "don't use the last stall", "2025-08-01");
+        Comment comment = new Comment("testuser", "don't use the last stall", new Date());
 
         databaseHelper.addComment(testBathroomId, comment, new DatabaseService.WriteCallback() {
             @Override
