@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.fragment.app.DialogFragment;
 
