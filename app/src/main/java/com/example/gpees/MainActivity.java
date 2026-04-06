@@ -2,12 +2,16 @@ package com.example.gpees;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.DrawableRes;
@@ -34,6 +38,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.CancellationTokenSource;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -46,7 +51,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private DatabaseService dbService;
     private FusedLocationProviderClient fusedLocationClient;
 
-    LatLng currentLatLng;
+    private LatLng currentLatLng;
+    private final List<Bathroom> displayedBathrooms = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,28 +72,60 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+
+        // Set up CLOSEST button logic
+        findViewById(R.id.btn_closest).setOnClickListener(v -> navigateToClosestBathroom());
+    }
+
+    private void navigateToClosestBathroom() {
+        if (currentLatLng == null) {
+            Toast.makeText(this, "Finding your location...", Toast.LENGTH_SHORT).show();
+            updateLocationAndFetchBathrooms();
+            return;
+        }
+
+        if (displayedBathrooms.isEmpty()) {
+            Toast.makeText(this, "No bathrooms found nearby", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Bathroom closest = null;
+        double minDistance = Double.MAX_VALUE;
+
+        for (Bathroom b : displayedBathrooms) {
+            double distance = DatabaseService.distanceMeters(
+                    currentLatLng.latitude, currentLatLng.longitude,
+                    b.getLatitude(), b.getLongitude()
+            );
+            if (distance < minDistance) {
+                minDistance = distance;
+                closest = b;
+            }
+        }
+
+        if (closest != null) {
+            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + 
+                    closest.getLatitude() + "," + closest.getLongitude() + "&mode=w");
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+            startActivity(mapIntent);
+        }
     }
 
     @Override
     public void onMapReady(@NonNull GoogleMap map) {
         googleMap = map;
 
-        // Apply custom map style to hide POIs
         try {
             boolean success = googleMap.setMapStyle(
-                    MapStyleOptions.loadRawResourceStyle(
-                            this, R.raw.map_style));
-            if (!success) {
-                Log.e(TAG, "Style parsing failed.");
-            }
+                    MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style));
+            if (!success) Log.e(TAG, "Style parsing failed.");
         } catch (Exception e) {
             Log.e(TAG, "Can't find style. Error: ", e);
         }
 
-        // Enable zoom controls (plus and minus buttons)
         googleMap.getUiSettings().setZoomControlsEnabled(true);
 
-        // Set up marker click listener
         googleMap.setOnMarkerClickListener(marker -> {
             if (marker.getTag() instanceof Bathroom) {
                 Bathroom bathroom = (Bathroom) marker.getTag();
@@ -98,24 +136,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return false;
         });
 
-        // Try to get current location and center map
         updateLocationAndFetchBathrooms();
     }
 
     private void updateLocationAndFetchBathrooms() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     LOCATION_PERMISSION_REQUEST_CODE);
             return;
         }
 
-        // Enable blue dot
         googleMap.setMyLocationEnabled(true);
 
-        // Get FRESH location instead of cached one
         CancellationTokenSource cts = new CancellationTokenSource();
         fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cts.getToken())
                 .addOnSuccessListener(this, location -> {
@@ -124,7 +157,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
                         fetchBathrooms(currentLatLng.latitude, currentLatLng.longitude, 1000.0);
                     } else {
-                        // Fallback to Kelowna
                         LatLng kelowna = new LatLng(49.888, -119.496);
                         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(kelowna, 14));
                         fetchBathrooms(kelowna.latitude, kelowna.longitude, 1000.0);
@@ -135,10 +167,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                updateLocationAndFetchBathrooms();
-            }
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            updateLocationAndFetchBathrooms();
         }
     }
 
@@ -146,9 +176,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         dbService.getBathroomsNearby(lat, lng, radius, new DatabaseService.BathroomsCallback() {
             @Override
             public void onSuccess(List<Bathroom> bathrooms) {
-                // Clear old bathroom markers before adding new ones
                 googleMap.clear();
-                // Re-enable location dot after clear if permission exists
+                displayedBathrooms.clear();
+                displayedBathrooms.addAll(bathrooms);
+
                 if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                     googleMap.setMyLocationEnabled(true);
                 }
@@ -167,13 +198,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void addBathroomMarker(Bathroom bathroom) {
         LatLng position = new LatLng(bathroom.getLatitude(), bathroom.getLongitude());
-        
         int iconResId = R.drawable.toilet__icon;
-        if (bathroom.hasTag("cost")) {
-            iconResId = R.drawable.dollar_sign_solid_full;
-        } else if (bathroom.hasTag("accessible")) {
-            iconResId = R.drawable.wheelchair_solid_full;
-        }
+        if (bathroom.hasTag("cost")) iconResId = R.drawable.dollar_sign_solid_full;
+        else if (bathroom.hasTag("accessible")) iconResId = R.drawable.wheelchair_solid_full;
 
         Marker marker = googleMap.addMarker(new MarkerOptions()
                 .position(position)
@@ -181,23 +208,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .anchor(0.5f, 0.5f)
                 .icon(getBitmapDescriptorFromVector(this, iconResId)));
 
-        if (marker != null) {
-            // Set the bathroom object as the tag
-            marker.setTag(bathroom);
-        }
+        if (marker != null) marker.setTag(bathroom);
     }
 
     private BitmapDescriptor getBitmapDescriptorFromVector(Context context, @DrawableRes int vectorResId) {
         Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
         if (vectorDrawable == null) return null;
-
         int size = 80;
         vectorDrawable.setBounds(0, 0, size, size);
-
         Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         vectorDrawable.draw(canvas);
-
         return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 

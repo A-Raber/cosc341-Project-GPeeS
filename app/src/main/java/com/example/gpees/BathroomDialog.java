@@ -1,13 +1,16 @@
 package com.example.gpees;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
@@ -68,8 +71,24 @@ public class BathroomDialog extends DialogFragment {
             if(bathroomDistance != null && currentLatLng != null){
                 bathroomDistance.setText("");
                 double distance = DatabaseService.distanceMeters(currentLatLng.latitude, currentLatLng.longitude, bathroom.getLatitude(), bathroom.getLongitude());
-                bathroomDistance.append(String.format("%.1f", distance));
-                bathroomDistance.append("m from you");
+                if (distance >= 1000) {
+                    bathroomDistance.append(String.format(Locale.getDefault(), "%.1f km from you", distance / 1000.0));
+                } else {
+                    bathroomDistance.append(String.format(Locale.getDefault(), "%.0f m from you", distance));
+                }
+            }
+
+            // Set up GO button for directions
+            Button btnGo = dialog.findViewById(R.id.btnGo);
+            if (btnGo != null) {
+                Bathroom finalBathroom = bathroom;
+                btnGo.setOnClickListener(v -> {
+                    Uri gmmIntentUri = Uri.parse("google.navigation:q=" + 
+                            finalBathroom.getLatitude() + "," + finalBathroom.getLongitude() + "&mode=w");
+                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+                    startActivity(mapIntent);
+                });
             }
 
             LinearLayout tagsContainer = dialog.findViewById(R.id.tagsContainer);
@@ -82,7 +101,7 @@ public class BathroomDialog extends DialogFragment {
                     tag = tag.substring(0,1).toUpperCase() + tag.substring(1);
                     tagView.setText(tag);
                     tagView.setTextSize(14);
-                    tagView.setPadding(20, 10, 20, 10); // Left, Top, Right, Bottom
+                    tagView.setPadding(20, 10, 20, 10);
 
                     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -122,20 +141,13 @@ public class BathroomDialog extends DialogFragment {
         dbService.getReviews(bathroomId, new DatabaseService.ReviewsCallback() {
             @Override
             public void onSuccess(List<Review> reviews) {
-                if (getActivity() == null) {
-                    return;
-                }
-
-                getActivity().runOnUiThread(() -> bindReviews(dialog, reviews));
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> setReviews(dialog, reviews));
             }
-
             @Override
             public void onFailure(Exception e) {
-                if (getActivity() == null) {
-                    return;
-                }
-
-                getActivity().runOnUiThread(() -> bindReviewError(dialog));
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> setReviewError(dialog));
             }
         });
     }
@@ -144,92 +156,101 @@ public class BathroomDialog extends DialogFragment {
         dbService.getComments(bathroomId, new DatabaseService.CommentsCallback() {
             @Override
             public void onSuccess(List<Comment> comments) {
-                if (getActivity() == null) {
-                    return;
-                }
-
-                getActivity().runOnUiThread(() -> bindComments(dialog, comments));
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> setComments(dialog, comments));
             }
-
             @Override
             public void onFailure(Exception e) {
-                if (getActivity() == null) {
-                    return;
-                }
-
-                getActivity().runOnUiThread(() -> bindCommentError(dialog));
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> setCommentError(dialog));
             }
         });
     }
 
-    private void bindReviews(Dialog dialog, List<Review> reviews) {
+    private void setReviews(Dialog dialog, List<Review> reviews) {
         RatingBar topRatingBar = dialog.findViewById(R.id.ratingBar);
-        TextView topRatingText = dialog.findViewById(R.id.ratingText);
         RatingBar previewRatingBar = dialog.findViewById(R.id.previewRatingBar);
         TextView previewReviewText = dialog.findViewById(R.id.previewReviewText);
         RatingBar bottomRatingBar = dialog.findViewById(R.id.bottomRatingBar);
+        TextView bottomRatingText = dialog.findViewById(R.id.bottomRatingText);
+
+        ProgressBar barOne = dialog.findViewById(R.id.barOne);
+        ProgressBar barTwo = dialog.findViewById(R.id.barTwo);
+        ProgressBar barThree = dialog.findViewById(R.id.barThree);
+        ProgressBar barFour = dialog.findViewById(R.id.barFour);
+        ProgressBar barFive = dialog.findViewById(R.id.barFive);
 
         if (reviews == null || reviews.isEmpty()) {
-            if (topRatingBar != null) {
+            if (topRatingBar != null)
                 topRatingBar.setRating(0f);
-            }
-            if (bottomRatingBar != null) {
+            if (bottomRatingBar != null)
                 bottomRatingBar.setRating(0f);
-            }
-            if (topRatingText != null) {
-                topRatingText.setText("No reviews yet");
-            }
-            if (previewRatingBar != null) {
+            if (bottomRatingText != null)
+                bottomRatingText.setText("0 out of 5");
+            if (previewRatingBar != null)
                 previewRatingBar.setRating(0f);
-            }
-            if (previewReviewText != null) {
+            if (previewReviewText != null)
                 previewReviewText.setText("No reviews yet.");
-            }
+
             return;
         }
 
         Collections.sort(reviews, Comparator.comparing(Review::getDate, Comparator.nullsLast(Comparator.reverseOrder())));
 
         float totalRating = 0f;
+        int one = 0, two = 0, three = 0, four = 0, five = 0;
         for (Review review : reviews) {
             totalRating += review.getRating();
+            int roundedDownRating = (int) Math.floor(review.getRating());
+            if (roundedDownRating == 1)
+                one++;
+            else if (roundedDownRating == 2)
+                two++;
+            else if (roundedDownRating == 3)
+                three++;
+            else if (roundedDownRating == 4)
+                four++;
+            else if (roundedDownRating == 5)
+                five++;
         }
+
+        int totalReviews = reviews.size();
+        if (barOne != null)
+            barOne.setProgress(Math.round((one * 100f) / totalReviews));
+        if (barTwo != null)
+            barTwo.setProgress(Math.round((two * 100f) / totalReviews));
+        if (barThree != null)
+            barThree.setProgress(Math.round((three * 100f) / totalReviews));
+        if (barFour != null)
+            barFour.setProgress(Math.round((four * 100f) / totalReviews));
+        if (barFive != null)
+            barFive.setProgress(Math.round((five * 100f) / totalReviews));
 
         float averageRating = totalRating / reviews.size();
         Review latestReview = reviews.get(0);
 
-        if (topRatingBar != null) {
+        if (topRatingBar != null)
             topRatingBar.setRating(averageRating);
-        }
-        if (bottomRatingBar != null) {
+        if (bottomRatingBar != null)
             bottomRatingBar.setRating(averageRating);
-        }
-        if (topRatingText != null) {
-            topRatingText.setText(String.format(Locale.getDefault(), "%.1f (%d)", averageRating, reviews.size()));
-        }
-        if (previewRatingBar != null) {
+        if (bottomRatingText != null)
+            bottomRatingText.setText(String.format(Locale.getDefault(), "%.1f out of 5", averageRating));
+        if (previewRatingBar != null)
             previewRatingBar.setRating(latestReview.getRating());
-        }
+
         if (previewReviewText != null) {
             String reviewText = latestReview.getComment();
-            if (reviewText == null || reviewText.trim().isEmpty()) {
+            if (reviewText == null || reviewText.trim().isEmpty())
                 reviewText = "No written review.";
-            }
 
-            previewReviewText.setText(String.format(
-                    Locale.getDefault(),
-                    "%s said \"%s\"",
-                    safeUsername(latestReview.getUsername()),
-                    reviewText
-            ));
+            previewReviewText.setText(String.format(Locale.getDefault(), "%s said \"%s\"", safeUsername(latestReview.getUsername()), reviewText));
         }
     }
 
-    private void bindComments(Dialog dialog, List<Comment> comments) {
+    private void setComments(Dialog dialog, List<Comment> comments) {
         LinearLayout commentsContainer = dialog.findViewById(R.id.commentsContainer);
-        if (commentsContainer == null) {
+        if (commentsContainer == null)
             return;
-        }
 
         commentsContainer.removeAllViews();
 
@@ -244,41 +265,25 @@ public class BathroomDialog extends DialogFragment {
             Comment comment = comments.get(index);
             String dateText = comment.getDate() != null ? DATE_FORMAT.format(comment.getDate()) : "Unknown date";
             String commentText = comment.getComment();
-            if (commentText == null || commentText.trim().isEmpty()) {
+            if (commentText == null || commentText.trim().isEmpty())
                 commentText = "";
-            }
 
-            commentsContainer.addView(buildCommentTextView(String.format(
-                    Locale.getDefault(),
-                    "%s  %s said '%s'",
-                    dateText,
-                    safeUsername(comment.getUsername()),
-                    commentText
-            )));
-
-            if (index < comments.size() - 1) {
+            commentsContainer.addView(buildCommentTextView(String.format(Locale.getDefault(), "%s  %s said '%s'", dateText, safeUsername(comment.getUsername()), commentText)));
+            if (index < comments.size() - 1)
                 commentsContainer.addView(buildDivider());
-            }
         }
     }
 
-    private void bindReviewError(Dialog dialog) {
-        TextView topRatingText = dialog.findViewById(R.id.ratingText);
+    private void setReviewError(Dialog dialog) {
         TextView previewReviewText = dialog.findViewById(R.id.previewReviewText);
-
-        if (topRatingText != null) {
-            topRatingText.setText("Unable to load reviews");
-        }
-        if (previewReviewText != null) {
+        if (previewReviewText != null)
             previewReviewText.setText("Unable to load reviews.");
-        }
     }
 
-    private void bindCommentError(Dialog dialog) {
+    private void setCommentError(Dialog dialog) {
         LinearLayout commentsContainer = dialog.findViewById(R.id.commentsContainer);
-        if (commentsContainer == null) {
+        if (commentsContainer == null)
             return;
-        }
 
         commentsContainer.removeAllViews();
         commentsContainer.addView(buildCommentTextView("Unable to load comments."));
@@ -286,10 +291,7 @@ public class BathroomDialog extends DialogFragment {
 
     private TextView buildCommentTextView(String text) {
         TextView textView = new TextView(requireContext());
-        textView.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        ));
+        textView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         textView.setPadding(8, 8, 8, 8);
         textView.setTextSize(13);
         textView.setText(text);
@@ -298,19 +300,12 @@ public class BathroomDialog extends DialogFragment {
 
     private View buildDivider() {
         View divider = new View(requireContext());
-        divider.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                1
-        ));
+        divider.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1));
         divider.setBackgroundColor(Color.parseColor("#CCCCCC"));
         return divider;
     }
 
     private String safeUsername(String username) {
-        if (username == null || username.trim().isEmpty()) {
-            return "Anonymous";
-        }
-
-        return username;
+        return (username == null || username.trim().isEmpty()) ? "Anonymous" : username;
     }
 }
