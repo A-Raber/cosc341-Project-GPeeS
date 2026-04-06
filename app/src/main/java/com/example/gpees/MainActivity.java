@@ -46,6 +46,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private DatabaseService dbService;
     private FusedLocationProviderClient fusedLocationClient;
 
+    LatLng currentLatLng;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         googleMap.setOnMarkerClickListener(marker -> {
             if (marker.getTag() instanceof Bathroom) {
                 Bathroom bathroom = (Bathroom) marker.getTag();
-                BathroomDialog dialog = BathroomDialog.newInstance(bathroom);
+                BathroomDialog dialog = BathroomDialog.newInstance(bathroom, currentLatLng);
                 dialog.show(getSupportFragmentManager(), "BathroomDialog");
                 return true;
             }
@@ -118,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cts.getToken())
                 .addOnSuccessListener(this, location -> {
                     if (location != null) {
-                        LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                        currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
                         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
                         fetchBathrooms(currentLatLng.latitude, currentLatLng.longitude, 1000.0);
                     } else {

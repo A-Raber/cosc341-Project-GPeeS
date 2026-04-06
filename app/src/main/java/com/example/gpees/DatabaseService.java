@@ -183,7 +183,7 @@ public class DatabaseService {
     }
 
     // Haversine Formula (Prevents getting bathrooms in a square)
-    public double distanceMeters(double lat1, double lng1, double lat2, double lng2) {
+    public static double distanceMeters(double lat1, double lng1, double lat2, double lng2) {
         double R = 6371000; // Earth radius in meters
 
         double dLat = Math.toRadians(lat2 - lat1);
