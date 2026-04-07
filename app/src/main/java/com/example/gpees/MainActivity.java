@@ -7,7 +7,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -89,7 +88,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onFilterApplied(FilterCriteria criteria) {
         this.currentFilters = criteria;
-        // Re-fetch or re-filter bathrooms based on the new criteria
         updateLocationAndFetchBathrooms();
     }
 
@@ -101,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         if (displayedBathrooms.isEmpty()) {
-            Toast.makeText(this, "No bathrooms found nearby", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No bathrooms found with current filters", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -170,14 +168,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .addOnSuccessListener(this, location -> {
                     if (location != null) {
                         currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
-                        // Use currentFilters.getMaxDistance() converted to meters
-                        fetchBathrooms(currentLatLng.latitude, currentLatLng.longitude, currentFilters.getMaxDistance() * 1000.0);
                     } else {
-                        LatLng kelowna = new LatLng(49.888, -119.496);
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(kelowna, 14));
-                        fetchBathrooms(kelowna.latitude, kelowna.longitude, currentFilters.getMaxDistance() * 1000.0);
+                        currentLatLng = new LatLng(49.888, -119.496); // Default Kelowna
                     }
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
+                    fetchBathrooms(currentLatLng.latitude, currentLatLng.longitude, currentFilters.getMaxDistance() * 1000.0);
                 });
     }
 
@@ -196,8 +191,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 googleMap.clear();
                 displayedBathrooms.clear();
 
-                // Simple filtering based on currentFilters
                 for (Bathroom bathroom : bathrooms) {
+                    // 1. Rating Filter
+                    if (bathroom.getRating() < currentFilters.getMinRating()) {
+                        continue;
+                    }
+
+                    // 2. Tag Filter (Matches ALL selected tags)
                     boolean matchesTags = true;
                     for (String filterTag : currentFilters.getTags()) {
                         if (!bathroom.hasTag(filterTag.toLowerCase())) {
@@ -211,6 +211,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         addBathroomMarker(bathroom);
                     }
                 }
+                
+                if (displayedBathrooms.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "No bathrooms match your filters", Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
@@ -222,9 +226,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void addBathroomMarker(Bathroom bathroom) {
         LatLng position = new LatLng(bathroom.getLatitude(), bathroom.getLongitude());
+        
+        // Priority Icon selection
         int iconResId = R.drawable.toilet__icon;
-        if (bathroom.hasTag("cost")) iconResId = R.drawable.dollar_sign_solid_full;
-        else if (bathroom.hasTag("accessible")) iconResId = R.drawable.wheelchair_solid_full;
+        if (bathroom.hasTag("accessible")) iconResId = R.drawable.wheelchair_solid_full;
+        else if (bathroom.hasTag("cost")) iconResId = R.drawable.dollar_sign_solid_full;
 
         Marker marker = googleMap.addMarker(new MarkerOptions()
                 .position(position)

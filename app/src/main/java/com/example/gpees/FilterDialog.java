@@ -25,7 +25,12 @@ public class FilterDialog extends DialogFragment {
     private FilterListener listener;
     private FilterCriteria currentCriteria;
 
-    // UI Components
+    // Discrete steps: 100m increments to 1km, then larger jumps
+    private final float[] distanceSteps = {
+            0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f,
+            2.0f, 5.0f, 10.0f, 25.0f, 50.0f
+    };
+
     private RatingBar ratingBar;
     private TextView tvRatingLabel;
     private Slider distanceSlider;
@@ -37,14 +42,12 @@ public class FilterDialog extends DialogFragment {
         this.listener = listener;
     }
 
-    // Required empty constructor for FragmentManager
     public FilterDialog() {}
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.dialog_filter, container, false);
 
-        // Initialize UI
         ratingBar = view.findViewById(R.id.rating_bar_filter);
         tvRatingLabel = view.findViewById(R.id.tv_rating_label);
         distanceSlider = view.findViewById(R.id.slider_distance);
@@ -58,13 +61,14 @@ public class FilterDialog extends DialogFragment {
         MaterialButton btnCancel = view.findViewById(R.id.btn_cancel_filter);
         MaterialButton btnApply = view.findViewById(R.id.btn_apply_filter);
 
-        // Set initial values from currentCriteria
         if (currentCriteria != null) {
             ratingBar.setRating(currentCriteria.getMinRating());
             updateRatingLabel(currentCriteria.getMinRating());
 
-            distanceSlider.setValue(currentCriteria.getMaxDistance());
-            tvDistanceValue.setText((int) currentCriteria.getMaxDistance() + " km");
+            // Set slider to the index of the closest step
+            float currentDist = currentCriteria.getMaxDistance();
+            distanceSlider.setValue(getNearestStepIndex(currentDist));
+            updateDistanceLabel(currentDist);
 
             List<String> tags = currentCriteria.getTags();
             cbAccessible.setChecked(tags.contains("accessible"));
@@ -73,10 +77,12 @@ public class FilterDialog extends DialogFragment {
             cbClean.setChecked(tags.contains("clean"));
         }
 
-        // Listeners for dynamic UI updates
         ratingBar.setOnRatingBarChangeListener((bar, rating, fromUser) -> updateRatingLabel(rating));
 
-        distanceSlider.addOnChangeListener((slider, value, fromUser) -> tvDistanceValue.setText((int) value + " km"));
+        distanceSlider.addOnChangeListener((slider, value, fromUser) -> {
+            float actualDistance = distanceSteps[(int) value];
+            updateDistanceLabel(actualDistance);
+        });
 
         btnClearTags.setOnClickListener(v -> {
             cbAccessible.setChecked(false);
@@ -90,16 +96,14 @@ public class FilterDialog extends DialogFragment {
         btnApply.setOnClickListener(v -> {
             FilterCriteria newCriteria = new FilterCriteria();
             newCriteria.setMinRating(ratingBar.getRating());
-            newCriteria.setMaxDistance(distanceSlider.getValue());
+            newCriteria.setMaxDistance(distanceSteps[(int) distanceSlider.getValue()]);
             
             if (cbAccessible.isChecked()) newCriteria.addTag("accessible");
             if (cbSafe.isChecked()) newCriteria.addTag("safe");
             if (cbFree.isChecked()) newCriteria.addTag("free");
             if (cbClean.isChecked()) newCriteria.addTag("clean");
 
-            if (listener != null) {
-                listener.onFilterApplied(newCriteria);
-            }
+            if (listener != null) listener.onFilterApplied(newCriteria);
             dismiss();
         });
 
@@ -110,12 +114,33 @@ public class FilterDialog extends DialogFragment {
         tvRatingLabel.setText("Minimum " + rating + " stars");
     }
 
+    private void updateDistanceLabel(float distance) {
+        if (distance < 1.0f) {
+            tvDistanceValue.setText((int)(distance * 1000) + " m");
+        } else {
+            tvDistanceValue.setText((int) distance + " km");
+        }
+    }
+
+    private int getNearestStepIndex(float distance) {
+        int nearest = distanceSteps.length - 1;
+        float minDiff = Float.MAX_VALUE;
+        for (int i = 0; i < distanceSteps.length; i++) {
+            float diff = Math.abs(distanceSteps[i] - distance);
+            if (diff < minDiff) {
+                minDiff = diff;
+                nearest = i;
+            }
+        }
+        return nearest;
+    }
+
     @Override
     public void onStart() {
         super.onStart();
         if (getDialog() != null && getDialog().getWindow() != null) {
             DisplayMetrics metrics = getResources().getDisplayMetrics();
-            int width = (int) (metrics.widthPixels * 0.95); // Match BathroomDialog's 95% width
+            int width = (int) (metrics.widthPixels * 0.95);
             getDialog().getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
             getDialog().getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
