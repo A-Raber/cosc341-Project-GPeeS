@@ -37,11 +37,12 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.CancellationTokenSource;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, FilterDialog.FilterListener {
 
     private static final String TAG = "MainActivity";
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
@@ -53,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private LatLng currentLatLng;
     private final List<Bathroom> displayedBathrooms = new ArrayList<>();
+    private FilterCriteria currentFilters = new FilterCriteria();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,12 +71,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return insets;
         });
 
+        // Initialize Filter Button
+        MaterialButton btnFilter = findViewById(R.id.btn_filter);
+        btnFilter.setOnClickListener(v -> {
+            FilterDialog dialog = new FilterDialog(currentFilters, this);
+            dialog.show(getSupportFragmentManager(), "FilterDialog");
+        });
+
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
         // Set up CLOSEST button logic
         findViewById(R.id.btn_closest).setOnClickListener(v -> navigateToClosestBathroom());
+    }
+
+    @Override
+    public void onFilterApplied(FilterCriteria criteria) {
+        this.currentFilters = criteria;
+        // Re-fetch or re-filter bathrooms based on the new criteria
+        updateLocationAndFetchBathrooms();
     }
 
     private void navigateToClosestBathroom() {
@@ -155,11 +171,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (location != null) {
                         currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
                         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
-                        fetchBathrooms(currentLatLng.latitude, currentLatLng.longitude, 1000.0);
+                        // Use currentFilters.getMaxDistance() converted to meters
+                        fetchBathrooms(currentLatLng.latitude, currentLatLng.longitude, currentFilters.getMaxDistance() * 1000.0);
                     } else {
                         LatLng kelowna = new LatLng(49.888, -119.496);
                         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(kelowna, 14));
-                        fetchBathrooms(kelowna.latitude, kelowna.longitude, 1000.0);
+                        fetchBathrooms(kelowna.latitude, kelowna.longitude, currentFilters.getMaxDistance() * 1000.0);
                     }
                 });
     }
@@ -178,14 +195,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onSuccess(List<Bathroom> bathrooms) {
                 googleMap.clear();
                 displayedBathrooms.clear();
-                displayedBathrooms.addAll(bathrooms);
 
-                if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                    googleMap.setMyLocationEnabled(true);
-                }
-
+                // Simple filtering based on currentFilters
                 for (Bathroom bathroom : bathrooms) {
-                    addBathroomMarker(bathroom);
+                    boolean matchesTags = true;
+                    for (String filterTag : currentFilters.getTags()) {
+                        if (!bathroom.hasTag(filterTag.toLowerCase())) {
+                            matchesTags = false;
+                            break;
+                        }
+                    }
+
+                    if (matchesTags) {
+                        displayedBathrooms.add(bathroom);
+                        addBathroomMarker(bathroom);
+                    }
                 }
             }
 
