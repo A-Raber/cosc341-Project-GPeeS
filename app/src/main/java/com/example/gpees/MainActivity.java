@@ -1,20 +1,31 @@
 package com.example.gpees;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -22,19 +33,35 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.CancellationTokenSource;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
+    private static final String TAG = "MainActivity";
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
+
     private MapView mapView;
     private GoogleMap googleMap;
+    private DatabaseService dbService;
+    private FusedLocationProviderClient fusedLocationClient;
+
+    private LatLng currentLatLng;
+    private final List<Bathroom> displayedBathrooms = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+
+        dbService = new DatabaseService();
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -45,56 +72,153 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+
+        // Set up CLOSEST button logic
+        findViewById(R.id.btn_closest).setOnClickListener(v -> navigateToClosestBathroom());
+    }
+
+    private void navigateToClosestBathroom() {
+        if (currentLatLng == null) {
+            Toast.makeText(this, "Finding your location...", Toast.LENGTH_SHORT).show();
+            updateLocationAndFetchBathrooms();
+            return;
+        }
+
+        if (displayedBathrooms.isEmpty()) {
+            Toast.makeText(this, "No bathrooms found nearby", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Bathroom closest = null;
+        double minDistance = Double.MAX_VALUE;
+
+        for (Bathroom b : displayedBathrooms) {
+            double distance = DatabaseService.distanceMeters(
+                    currentLatLng.latitude, currentLatLng.longitude,
+                    b.getLatitude(), b.getLongitude()
+            );
+            if (distance < minDistance) {
+                minDistance = distance;
+                closest = b;
+            }
+        }
+
+        if (closest != null) {
+            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + 
+                    closest.getLatitude() + "," + closest.getLongitude() + "&mode=w");
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+            startActivity(mapIntent);
+        }
     }
 
     @Override
     public void onMapReady(@NonNull GoogleMap map) {
         googleMap = map;
-        googleMap.clear();
 
-        // Set up marker click listener
+        try {
+            boolean success = googleMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style));
+            if (!success) Log.e(TAG, "Style parsing failed.");
+        } catch (Exception e) {
+            Log.e(TAG, "Can't find style. Error: ", e);
+        }
+
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
+
         googleMap.setOnMarkerClickListener(marker -> {
-
-            if (marker.getTag() != null && marker.getTag().equals("bathroom")) {
-                BathroomDialog dialog = new BathroomDialog();
+            if (marker.getTag() instanceof Bathroom) {
+                Bathroom bathroom = (Bathroom) marker.getTag();
+                BathroomDialog dialog = BathroomDialog.newInstance(bathroom, currentLatLng);
                 dialog.show(getSupportFragmentManager(), "BathroomDialog");
                 return true;
             }
             return false;
         });
 
-        LatLng kelowna = new LatLng(49.888, -119.496);
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(kelowna, 14));
-
-        // Add markers with a "bathroom" tag
-        addBathroomMarker(new LatLng(49.888, -119.496), "Standard Toilet", R.drawable.toilet__icon);
-        addBathroomMarker(new LatLng(49.892, -119.485), "Accessible Toilet", R.drawable.wheelchair_solid_full);
-        addBathroomMarker(new LatLng(49.885, -119.505), "Paid Toilet", R.drawable.dollar_sign_solid_full);
+        updateLocationAndFetchBathrooms();
     }
 
-    private void addBathroomMarker(LatLng position, String title, @DrawableRes int iconResId) {
+    private void updateLocationAndFetchBathrooms() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    LOCATION_PERMISSION_REQUEST_CODE);
+            return;
+        }
+
+        googleMap.setMyLocationEnabled(true);
+
+        CancellationTokenSource cts = new CancellationTokenSource();
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cts.getToken())
+                .addOnSuccessListener(this, location -> {
+                    if (location != null) {
+                        currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
+                        fetchBathrooms(currentLatLng.latitude, currentLatLng.longitude, 1000.0);
+                    } else {
+                        LatLng kelowna = new LatLng(49.888, -119.496);
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(kelowna, 14));
+                        fetchBathrooms(kelowna.latitude, kelowna.longitude, 1000.0);
+                    }
+                });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            updateLocationAndFetchBathrooms();
+        }
+    }
+
+    private void fetchBathrooms(double lat, double lng, double radius) {
+        dbService.getBathroomsNearby(lat, lng, radius, new DatabaseService.BathroomsCallback() {
+            @Override
+            public void onSuccess(List<Bathroom> bathrooms) {
+                googleMap.clear();
+                displayedBathrooms.clear();
+                displayedBathrooms.addAll(bathrooms);
+
+                if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    googleMap.setMyLocationEnabled(true);
+                }
+
+                for (Bathroom bathroom : bathrooms) {
+                    addBathroomMarker(bathroom);
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Log.e(TAG, "Error fetching bathrooms", e);
+            }
+        });
+    }
+
+    private void addBathroomMarker(Bathroom bathroom) {
+        LatLng position = new LatLng(bathroom.getLatitude(), bathroom.getLongitude());
+        int iconResId = R.drawable.toilet__icon;
+        if (bathroom.hasTag("cost")) iconResId = R.drawable.dollar_sign_solid_full;
+        else if (bathroom.hasTag("accessible")) iconResId = R.drawable.wheelchair_solid_full;
+
         Marker marker = googleMap.addMarker(new MarkerOptions()
                 .position(position)
-                .title(title)
+                .title(bathroom.getName())
                 .anchor(0.5f, 0.5f)
                 .icon(getBitmapDescriptorFromVector(this, iconResId)));
 
-        if (marker != null) {
-            marker.setTag("bathroom");
-        }
+        if (marker != null) marker.setTag(bathroom);
     }
 
     private BitmapDescriptor getBitmapDescriptorFromVector(Context context, @DrawableRes int vectorResId) {
         Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
         if (vectorDrawable == null) return null;
-
         int size = 80;
         vectorDrawable.setBounds(0, 0, size, size);
-
         Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         vectorDrawable.draw(canvas);
-
         return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
