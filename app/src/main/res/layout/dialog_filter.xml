@@ -97,13 +97,33 @@
             app:trackColorActive="@color/blue" />
 
         <!-- Tags Section -->
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Tags"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Tags"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_clear_tags"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:text="Clear"
+                android:textColor="@color/blue"
+                android:textSize="12sp" />
+        </LinearLayout>
 
         <com.google.android.material.checkbox.MaterialCheckBox
             android:id="@+id/cb_accessible"
