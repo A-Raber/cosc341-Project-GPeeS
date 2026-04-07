@@ -24,11 +24,13 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.button.MaterialButton;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, FilterDialog.FilterListener {
 
     private MapView mapView;
     private GoogleMap googleMap;
+    private FilterCriteria currentFilters = new FilterCriteria();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,9 +44,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return insets;
         });
 
+        // Initialize Filter Button
+        MaterialButton btnFilter = findViewById(R.id.btn_filter);
+        btnFilter.setOnClickListener(v -> {
+            FilterDialog dialog = new FilterDialog(currentFilters, this);
+            dialog.show(getSupportFragmentManager(), "FilterDialog");
+        });
+
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+    }
+
+    @Override
+    public void onFilterApplied(FilterCriteria criteria) {
+        this.currentFilters = criteria;
+        // TODO: implement the actual map filtering logic here
     }
 
     @Override

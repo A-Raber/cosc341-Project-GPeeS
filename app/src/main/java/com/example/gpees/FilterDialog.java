@@ -1,6 +1,7 @@
 package com.example.gpees;
 
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -113,7 +114,9 @@ public class FilterDialog extends DialogFragment {
     public void onStart() {
         super.onStart();
         if (getDialog() != null && getDialog().getWindow() != null) {
-            getDialog().getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            DisplayMetrics metrics = getResources().getDisplayMetrics();
+            int width = (int) (metrics.widthPixels * 0.95); // Match BathroomDialog's 95% width
+            getDialog().getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
             getDialog().getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
     }
