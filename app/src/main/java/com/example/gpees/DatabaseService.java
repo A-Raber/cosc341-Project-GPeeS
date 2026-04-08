@@ -19,6 +19,9 @@ public class DatabaseService {
         db = FirebaseFirestore.getInstance();
     }
 
+    public void addReview(Review review, AddReviewCallback addReviewCallback) {
+    }
+
     // Callbacks
 
     public interface BathroomsCallback {
@@ -28,6 +31,11 @@ public class DatabaseService {
 
     public interface ReviewsCallback {
         void onSuccess(List<Review> reviews);
+        void onFailure(Exception e);
+    }
+
+    public interface AddReviewCallback {
+        void onSuccess();
         void onFailure(Exception e);
     }
 

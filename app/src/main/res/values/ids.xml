@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="btnCancelReview" type="id" />
+    <item name="reviewBathroomName" type="id" />
+    <item name="reviewBathroomAddress" type="id" />
+    <item name="divider" type="id" />
+    <item name="reviewRatingBar" type="id" />
+    <item name="reviewEditText" type="id" />
+    <item name="btnSubmitReview" type="id" />
+</resources>

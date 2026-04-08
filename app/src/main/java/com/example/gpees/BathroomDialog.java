@@ -126,6 +126,15 @@ public class BathroomDialog extends DialogFragment {
             btnClose.setOnClickListener(v -> dismiss());
         }
 
+        Button btnAddReview = dialog.findViewById(R.id.btnAddReview);
+        if (btnAddReview != null) {
+            Bathroom finalBathroom = bathroom;
+            btnAddReview.setOnClickListener(v -> {
+                AddReviewDialog reviewDialog = AddReviewDialog.newInstance(finalBathroom);
+                reviewDialog.show(getParentFragmentManager(), "AddReviewDialog");
+            });
+        }
+
         Window window = dialog.getWindow();
         if (window != null) {
             DisplayMetrics metrics = getResources().getDisplayMetrics();
