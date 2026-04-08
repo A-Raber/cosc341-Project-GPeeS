@@ -179,7 +179,7 @@ public class AddBathroomDialog extends DialogFragment {
         if (window != null) {
             DisplayMetrics metrics = getResources().getDisplayMetrics();
             int width = (int) (metrics.widthPixels * 0.95);
-            int height = (int) (metrics.heightPixels * 0.85);
+            int height = (int) (metrics.heightPixels * 0.65);
             window.setLayout(width, height);
         }
 
