@@ -11,6 +11,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
+import android.widget.ImageButton;
+import android.widget.PopupMenu;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.DrawableRes;
@@ -35,8 +37,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.CancellationTokenSource;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.gms.tasks.CancellationTokenSource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +79,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             dialog.show(getSupportFragmentManager(), "FilterDialog");
         });
 
+        // Hamburger menu popup
+        ImageButton btnMenu = findViewById(R.id.btn_menu);
+        btnMenu.setOnClickListener(view -> {
+            PopupMenu popup = new PopupMenu(this, view);
+            popup.getMenuInflater().inflate(R.menu.menu_main, popup.getMenu());
+            popup.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.menu_profile) {
+                    startActivity(new Intent(this, ProfileActivity.class));
+                    return true;
+                } else if (item.getItemId() == R.id.menu_logout) {
+                    // Add logout logic here later
+                    return true;
+                }
+                return false;
+            });
+            popup.show();
+        });
+
+        // Initialize MapView
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
@@ -118,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         if (closest != null) {
-            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + 
+            Uri gmmIntentUri = Uri.parse("google.navigation:q=" +
                     closest.getLatitude() + "," + closest.getLongitude() + "&mode=w");
             Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
             mapIntent.setPackage("com.google.android.apps.maps");
@@ -211,7 +232,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         addBathroomMarker(bathroom);
                     }
                 }
-                
+
                 if (displayedBathrooms.isEmpty()) {
                     Toast.makeText(MainActivity.this, "No bathrooms match your filters", Toast.LENGTH_SHORT).show();
                 }
@@ -226,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void addBathroomMarker(Bathroom bathroom) {
         LatLng position = new LatLng(bathroom.getLatitude(), bathroom.getLongitude());
-        
+
         // Priority Icon selection
         int iconResId = R.drawable.toilet__icon;
         if (bathroom.hasTag("accessible")) iconResId = R.drawable.wheelchair_solid_full;
@@ -257,21 +278,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onResume();
         mapView.onResume();
     }
+
     @Override
     protected void onPause() {
         mapView.onPause();
         super.onPause();
     }
+
     @Override
     protected void onDestroy() {
         mapView.onDestroy();
         super.onDestroy();
     }
+
     @Override
     public void onLowMemory() {
         super.onLowMemory();
         mapView.onLowMemory();
     }
+
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
