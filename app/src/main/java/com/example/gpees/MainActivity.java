@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                searchQuery = s.toString().trim();
+                searchQuery = s.toString().trim().toLowerCase();
                 fetchBathrooms(currentLatLng.latitude, currentLatLng.longitude, currentFilters.getMaxDistance() * 1000.0);
             }
 
@@ -289,8 +289,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             break;
                         }
                     }
+                    if (!matchesTags) continue;
 
-                    if (matchesTags) {
+                    // 3. Search Filter (Name, Address, or Tags)
+                    boolean matchesSearch = searchQuery.isEmpty()
+                            || (bathroom.getName() != null && bathroom.getName().toLowerCase().contains(searchQuery))
+                            || (bathroom.getAddress() != null && bathroom.getAddress().toLowerCase().contains(searchQuery))
+                            || bathroom.getTags().stream().anyMatch(tag -> tag.toLowerCase().contains(searchQuery));
+
+                    if (matchesSearch) {
                         displayedBathrooms.add(bathroom);
                         addBathroomMarker(bathroom);
                     }
