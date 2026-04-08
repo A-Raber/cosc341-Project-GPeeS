@@ -12,23 +12,36 @@
         android:orientation="vertical">
 
         <!-- Top bar with back arrow -->
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:background="#2C6E49"
-            app:navigationIcon="?attr/homeAsUpIndicator"
-            app:title="Profile"
-            app:titleTextColor="#FFFFFF" />
-
-        <!-- Profile header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#2C6E49"
+            android:background="#000000"
+            android:padding="1dp">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="#426EBF"
+                app:navigationIcon="?attr/homeAsUpIndicator"
+                app:title="Profile"
+                app:titleTextColor="#FFFFFF" />
+
+        </LinearLayout>
+        <!-- Profile header -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#000000"
+        android:padding="1dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/blue"
             android:gravity="center"
-            android:padding="24dp"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="24dp">
 
             <TextView
                 android:id="@+id/tv_username"
@@ -43,10 +56,10 @@
                 android:id="@+id/tv_location"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:text="📍 Kelowna, BC"
-                android:textColor="#A8D5B5"
-                android:textSize="14sp"
-                android:layout_marginTop="4dp"/>
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
 
             <Button
                 android:id="@+id/btn_edit"
@@ -55,9 +68,9 @@
                 android:layout_marginTop="12dp"
                 android:backgroundTint="#FFFFFF"
                 android:text="Edit"
-                android:textColor="#2C6E49" />
+                android:textColor="#040404" />
         </LinearLayout>
-
+    </LinearLayout>
         <!-- Reviews section label -->
         <TextView
             android:layout_width="wrap_content"
@@ -136,14 +149,14 @@
 
         <Button
             android:id="@+id/btn_see_more_reviews"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="8dp"
             android:text="See More"
-            android:textColor="#2C6E49"
-            style="@style/Widget.MaterialComponents.Button.TextButton"/>
+            android:textColor="@color/blue" />
 
         <!-- Comments section label -->
         <TextView
@@ -168,13 +181,14 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="On: Wendy's 123 Main St  ·  8/21/25"
-                    android:textStyle="bold"
+                    android:textColor="@color/black"
                     android:textSize="13sp"
-                    android:textColor="#2C6E49"/>
+                    android:textStyle="bold" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -197,13 +211,14 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="On: Tim Hortons, Bernard Ave  ·  9/02/25"
-                    android:textStyle="bold"
+                    android:textColor="@color/black"
                     android:textSize="13sp"
-                    android:textColor="#2C6E49"/>
+                    android:textStyle="bold" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -216,14 +231,14 @@
         <!-- After Comment 2 card (replace the existing last CardView's marginBottom) -->
         <Button
             android:id="@+id/btn_see_more_comments"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="32dp"
             android:text="See More"
-            android:textColor="#2C6E49"
-            style="@style/Widget.MaterialComponents.Button.TextButton"/>
+            android:textColor="@color/blue" />
 
     </LinearLayout>
 </ScrollView>
