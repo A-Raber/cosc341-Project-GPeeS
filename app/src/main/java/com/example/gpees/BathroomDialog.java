@@ -47,7 +47,7 @@ public class BathroomDialog extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         Dialog dialog = new Dialog(requireContext());
-        dialog.setContentView(R.layout.bathroom_dialog);
+        dialog.setContentView(R.layout.dialog_bathroom);
 
         Bathroom bathroom = null;
         if (getArguments() != null) {
@@ -89,6 +89,12 @@ public class BathroomDialog extends DialogFragment {
                     mapIntent.setPackage("com.google.android.apps.maps");
                     startActivity(mapIntent);
                 });
+            }
+
+            Bathroom finalBathroom = bathroom;
+            Button btnShowReviews = dialog.findViewById(R.id.seeReviewsButton);
+            if (btnShowReviews != null) {
+                btnShowReviews.setOnClickListener(v -> showReviews(finalBathroom));
             }
 
             LinearLayout tagsContainer = dialog.findViewById(R.id.tagsContainer);
@@ -316,5 +322,10 @@ public class BathroomDialog extends DialogFragment {
 
     private String safeUsername(String username) {
         return (username == null || username.trim().isEmpty()) ? "Anonymous" : username;
+    }
+
+    private void showReviews(Bathroom bathroom) {
+        ReviewsDialog reviewsDialog = ReviewsDialog.newInstance(bathroom);
+        reviewsDialog.show(getParentFragmentManager(), "ReviewsDialog");
     }
 }
