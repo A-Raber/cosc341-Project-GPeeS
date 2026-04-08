@@ -42,6 +42,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore:25.1.1")
     implementation(libs.play.services.maps)
     implementation(libs.play.services.location)
+    implementation(libs.firebase.storage)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
