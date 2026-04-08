@@ -7,6 +7,8 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,6 +19,7 @@ import android.widget.PopupMenu;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -40,10 +43,12 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.gms.tasks.CancellationTokenSource;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, FilterDialog.FilterListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, FilterDialog.FilterListener, AddBathroomDialog.AddBathroomListener {
 
     private static final String TAG = "MainActivity";
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
@@ -56,6 +61,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LatLng currentLatLng;
     private final List<Bathroom> displayedBathrooms = new ArrayList<>();
     private FilterCriteria currentFilters = new FilterCriteria();
+    private AddBathroomDialog pendingAddDialog;
+    private boolean pickingLocation = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +97,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     return true;
                 } else if (item.getItemId() == R.id.menu_logout) {
                     // Add logout logic here later
+                    return true;
+                } else if (item.getItemId() == R.id.menu_add_bathroom) {
+                    openAddBathroomDialog(null);
                     return true;
                 }
                 return false;
@@ -169,6 +179,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return true;
             }
             return false;
+        });
+
+        googleMap.setOnMapClickListener(latLng -> {
+            if (pickingLocation && pendingAddDialog != null) {
+                pickingLocation = false;
+                new Thread(() -> {
+                    Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+                    String address = "";
+                    try {
+                        List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+                        if (addresses != null && !addresses.isEmpty()) {
+                            address = addresses.get(0).getAddressLine(0);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    final String finalAddress = address;
+                    runOnUiThread(() -> {
+                        pendingAddDialog.setSelectedLocation(latLng, finalAddress);
+                        pendingAddDialog.getDialog().show();
+                        pendingAddDialog = null;
+                    });
+                }).start();
+            }
         });
 
         updateLocationAndFetchBathrooms();
@@ -260,6 +294,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .icon(getBitmapDescriptorFromVector(this, iconResId)));
 
         if (marker != null) marker.setTag(bathroom);
+    }
+
+    private void openAddBathroomDialog(@Nullable LatLng preselectedLatLng) {
+        AddBathroomDialog dialog = new AddBathroomDialog();
+        dialog.setListener(this);
+        if (preselectedLatLng != null) {
+            String address = ""; // Geocoding happens inside the dialog for current location;
+            // for map pick we pass coords and let dialog geocode via setSelectedLocation
+            dialog.setSelectedLocation(preselectedLatLng, address);
+        }
+        dialog.show(getSupportFragmentManager(), "AddBathroomDialog");
+    }
+
+    // User tapped "Select on Map" — store the dialog and wait for a map tap
+    @Override
+    public void onSelectOnMap(AddBathroomDialog dialog) {
+        pendingAddDialog = dialog;
+        pickingLocation = true;
+        Toast.makeText(this, "Tap the map to select a location", Toast.LENGTH_SHORT).show();
+    }
+
+    // Bathroom successfully added — refresh markers
+    @Override
+    public void onBathroomAdded() {
+        fetchBathrooms(currentLatLng.latitude, currentLatLng.longitude,
+                currentFilters.getMaxDistance() * 1000.0);
     }
 
     private BitmapDescriptor getBitmapDescriptorFromVector(Context context, @DrawableRes int vectorResId) {
