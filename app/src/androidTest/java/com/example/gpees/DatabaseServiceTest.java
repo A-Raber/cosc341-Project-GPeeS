@@ -30,6 +30,10 @@ public class DatabaseServiceTest {
             this.bathroom = bathroom;
             this.reviews = reviews;
             this.comments = comments;
+            
+            // Ensure bathroom starts with 0 rating so addReview transaction can calculate it correctly
+            this.bathroom.setRating(0.0f);
+            this.bathroom.setReviewCount(0);
         }
     }
 
@@ -92,7 +96,6 @@ public class DatabaseServiceTest {
             @Override
             public void onSuccess(List<Bathroom> bathrooms) {
                 assertNotNull("Result should not be null", bathrooms);
-                // We expect at least the one added in test A or seeded ones
                 passed[0] = true;
                 latch.countDown();
             }
@@ -140,47 +143,47 @@ public class DatabaseServiceTest {
     public void z_seedKelownaBathrooms() {
         List<SeedBathroomData> seedData = Arrays.asList(
             new SeedBathroomData(
-                new Bathroom("Park Washroom", "1600 Abbott St", 49.8841, -119.4978, Arrays.asList("accessible", "safe")),
+                new Bathroom("City Park Washroom", "1600 Abbott St", 49.8841, -119.4978, Arrays.asList("accessible", "safe")),
                 Arrays.asList(
-                    new Review("kelownalocal", 4.5f, "Usually stocked and close to the beach.", new Date(1743206400000L)),
-                    new Review("morningwalker", 4.0f, "Clean early in the day.", new Date(1743724800000L))
+                    new Review("kelownalocal", 4.5f, "Usually stocked and close to the beach.", new Date()),
+                    new Review("morningwalker", 4.0f, "Clean early in the day.", new Date())
                 ),
                 Arrays.asList(
-                    new Comment("Anonymous", "Best option when you're already in City Park.", new Date(1743811200000L)),
-                    new Comment("beachrunner", "Line gets longer in the afternoon.", new Date(1743897600000L))
+                    new Comment("Anonymous", "Best option when you're already in City Park.", new Date()),
+                    new Comment("beachrunner", "Line gets longer in the afternoon.", new Date())
                 )
             ),
             new SeedBathroomData(
                 new Bathroom("Waterfront Park", "1200 Water St", 49.8925, -119.4975, Arrays.asList("safe")),
                 Arrays.asList(
-                    new Review("tourist22", 3.5f, "Convenient but can get busy on weekends.", new Date(1743033600000L)),
-                    new Review("lakeview", 4.0f, "Good stop while walking the boardwalk.", new Date(1743552000000L))
+                    new Review("tourist22", 3.5f, "Convenient but can get busy on weekends.", new Date()),
+                    new Review("lakeview", 4.0f, "Good stop while walking the boardwalk.", new Date())
                 ),
                 Arrays.asList(
-                    new Comment("dockside", "Lighting is decent after sunset.", new Date(1743638400000L)),
-                    new Comment("Anonymous", "Bring your own sanitizer just in case.", new Date(1743984000000L))
+                    new Comment("dockside", "Lighting is decent after sunset.", new Date()),
+                    new Comment("Anonymous", "Bring your own sanitizer just in case.", new Date())
                 )
             ),
             new SeedBathroomData(
-                new Bathroom("Downtown Paid", "Bernard Ave", 49.8872, -119.4961, Arrays.asList("cost", "accessible")),
+                new Bathroom("Downtown Paid Toilet", "Bernard Ave", 49.8872, -119.4961, Arrays.asList("cost", "accessible")),
                 Arrays.asList(
-                    new Review("budgettraveler", 2.5f, "Fine in an emergency, but paying is annoying.", new Date(1742860800000L)),
-                    new Review("wheelsonroad", 4.0f, "Easy accessible entry and enough space.", new Date(1743379200000L))
+                    new Review("budgettraveler", 2.5f, "Fine in an emergency, but paying is annoying.", new Date()),
+                    new Review("wheelsonroad", 4.0f, "Easy accessible entry and enough space.", new Date())
                 ),
                 Arrays.asList(
-                    new Comment("downtowncommuter", "Card reader worked for me.", new Date(1743465600000L)),
-                    new Comment("Anonymous", "Has been cleaner lately.", new Date(1744070400000L))
+                    new Comment("downtowncommuter", "Card reader worked for me.", new Date()),
+                    new Comment("Anonymous", "Has been cleaner lately.", new Date())
                 )
             ),
             new SeedBathroomData(
                 new Bathroom("Gyro Beach Washroom", "3400 Lakeshore Rd", 49.8520, -119.4895, Arrays.asList("accessible", "clean")),
                 Arrays.asList(
-                    new Review("sunsetswim", 5.0f, "Surprisingly clean for a beach washroom.", new Date(1742774400000L)),
-                    new Review("familyday", 4.5f, "Spacious and easy to find.", new Date(1743292800000L))
+                    new Review("sunsetswim", 5.0f, "Surprisingly clean for a beach washroom.", new Date()),
+                    new Review("familyday", 4.5f, "Spacious and easy to find.", new Date())
                 ),
                 Arrays.asList(
-                    new Comment("parentmode", "Good stop if you have kids with you.", new Date(1743552000000L)),
-                    new Comment("lakeshorelocal", "Closed briefly one morning for cleaning.", new Date(1744156800000L))
+                    new Comment("parentmode", "Good stop if you have kids with you.", new Date()),
+                    new Comment("lakeshorelocal", "Closed briefly one morning for cleaning.", new Date())
                 )
             ),
             new SeedBathroomData(
@@ -307,12 +310,12 @@ public class DatabaseServiceTest {
             new SeedBathroomData(
                 new Bathroom("UBCO Commons", "3333 University Way", 49.9406, -119.3959, Arrays.asList("clean", "accessible", "free")),
                 Arrays.asList(
-                    new Review("campuslate", 4.5f, "Modern, bright, and consistently clean.", new Date(1747785600000L)),
-                    new Review("studygroup", 4.0f, "Reliable if you are on campus during the day.", new Date(1747872000000L))
+                    new Review("shopbreak", 4.5f, "Reliable and usually very clean.", new Date()),
+                    new Review("mallhopper", 4.0f, "Easy to access during store hours.", new Date())
                 ),
                 Arrays.asList(
-                    new Comment("Anonymous", "Good signage once you are in the commons building.", new Date(1747958400000L)),
-                    new Comment("okanaganstudent", "Best public option near the bus loop.", new Date(1748044800000L))
+                    new Comment("Anonymous", "Near the food court entrance.", new Date()),
+                    new Comment("weekenderrand", "Busy at lunch but still manageable.", new Date())
                 )
             )
         );
@@ -351,10 +354,7 @@ public class DatabaseServiceTest {
             });
 
             awaitLatch(latch);
-
-            if (errorMessage[0] != null) {
-                fail(errorMessage[0]);
-            }
+            if (errorMessage[0] != null) fail(errorMessage[0]);
         }
     }
 

@@ -5,6 +5,7 @@ import android.util.Log;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Transaction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,26 +50,6 @@ public class DatabaseService {
                 .addOnFailureListener(callback::onFailure);
     }
 
-    // Read all bathrooms
-
-    // TODO: get rid of this. we don't need to pull ALL bathrooms at once
-    public void getBathrooms(BathroomsCallback callback) {
-        db.collection("bathrooms")
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    List<Bathroom> bathrooms = new ArrayList<>();
-                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                        Bathroom bathroom = doc.toObject(Bathroom.class);
-                        if (bathroom != null) {
-                            bathroom.setId(doc.getId());
-                            bathrooms.add(bathroom);
-                        }
-                    }
-                    callback.onSuccess(bathrooms);
-                })
-                .addOnFailureListener(callback::onFailure);
-    }
-
     // Read bathrooms within a lat and lng
     // TODO: Refactor to use metres instead of long / lat
     public void getBathroomsNearby(double lat, double lng, double radiusMeters, BathroomsCallback callback) {
@@ -100,6 +81,34 @@ public class DatabaseService {
                 .addOnFailureListener(callback::onFailure);
     }
 
+    // Add a review and update the bathroom's average rating automatically
+    public void addReview(String bathroomId, Review review, WriteCallback callback) {
+        DocumentReference bathroomRef = db.collection("bathrooms").document(bathroomId);
+        DocumentReference reviewRef = bathroomRef.collection("reviews").document();
+        
+        db.runTransaction((Transaction.Function<Void>) transaction -> {
+            DocumentSnapshot snapshot = transaction.get(bathroomRef);
+            Bathroom bathroom = snapshot.toObject(Bathroom.class);
+            
+            if (bathroom != null) {
+                // Calculate new average rating
+                int newCount = bathroom.getReviewCount() + 1;
+                float newRating = ((bathroom.getRating() * bathroom.getReviewCount()) + review.getRating()) / newCount;
+                
+                // Update bathroom object
+                bathroom.setRating(newRating);
+                bathroom.setReviewCount(newCount);
+                
+                // Set review ID and save
+                review.setId(reviewRef.getId());
+                transaction.set(reviewRef, review);
+                transaction.update(bathroomRef, "rating", newRating, "reviewCount", newCount);
+            }
+            return null;
+        }).addOnSuccessListener(aVoid -> callback.onSuccess())
+          .addOnFailureListener(callback::onFailure);
+    }
+
     // Read reviews for a bathroom
     public void getReviews(String bathroomId, ReviewsCallback callback) {
         db.collection("bathrooms")
@@ -117,25 +126,6 @@ public class DatabaseService {
                     }
                     callback.onSuccess(reviews);
                 }).addOnFailureListener(callback::onFailure);
-
-    }
-
-    // Add a review to a bathroom
-    public void addReview(String bathroomId, Review review, WriteCallback callback) {
-//        db.collection("bathrooms")
-//                .document(bathroomId)
-//                .collection("reviews")
-//                .add(review)
-//                .addOnSuccessListener(ref -> callback.onSuccess())
-//                .addOnFailureListener(e -> callback.onFailure(e));
-        DocumentReference ref = db.collection("bathrooms")
-                .document(bathroomId)
-                .collection("reviews")
-                .document();
-        review.setId(ref.getId());  // id gets assigned automatically
-        ref.set(review)
-                .addOnSuccessListener(aVoid -> callback.onSuccess())
-                .addOnFailureListener(callback::onFailure);
     }
 
     // Read comments for a bathroom
@@ -170,16 +160,12 @@ public class DatabaseService {
                 .addOnFailureListener(callback::onFailure);
     }
 
+    // Helper: Bounding Box for query
     public double[] getBoundingBox(double lat, double lng, double radiusMeters) {
         double latDelta = radiusMeters / 111320.0;
-        double lngDelta = radiusMeters / (111320.0 * Math.cos(Math.toRadians(lat)));
-
         double minLat = lat - latDelta;
         double maxLat = lat + latDelta;
-        double minLng = lng - lngDelta;
-        double maxLng = lng + lngDelta;
-
-        return new double[]{minLat, maxLat, minLng, maxLng};
+        return new double[]{minLat, maxLat};
     }
 
     // Haversine Formula (Prevents getting bathrooms in a square)

@@ -7,7 +7,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -37,11 +36,12 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.CancellationTokenSource;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, FilterDialog.FilterListener {
 
     private static final String TAG = "MainActivity";
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private LatLng currentLatLng;
     private final List<Bathroom> displayedBathrooms = new ArrayList<>();
+    private FilterCriteria currentFilters = new FilterCriteria();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,12 +70,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return insets;
         });
 
+        // Initialize Filter Button
+        MaterialButton btnFilter = findViewById(R.id.btn_filter);
+        btnFilter.setOnClickListener(v -> {
+            FilterDialog dialog = new FilterDialog(currentFilters, this);
+            dialog.show(getSupportFragmentManager(), "FilterDialog");
+        });
+
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
         // Set up CLOSEST button logic
         findViewById(R.id.btn_closest).setOnClickListener(v -> navigateToClosestBathroom());
+    }
+
+    @Override
+    public void onFilterApplied(FilterCriteria criteria) {
+        this.currentFilters = criteria;
+        updateLocationAndFetchBathrooms();
     }
 
     private void navigateToClosestBathroom() {
@@ -85,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         if (displayedBathrooms.isEmpty()) {
-            Toast.makeText(this, "No bathrooms found nearby", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No bathrooms found with current filters", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -154,13 +168,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .addOnSuccessListener(this, location -> {
                     if (location != null) {
                         currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
-                        fetchBathrooms(currentLatLng.latitude, currentLatLng.longitude, 1000.0);
                     } else {
-                        LatLng kelowna = new LatLng(49.888, -119.496);
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(kelowna, 14));
-                        fetchBathrooms(kelowna.latitude, kelowna.longitude, 1000.0);
+                        currentLatLng = new LatLng(49.888, -119.496); // Default Kelowna
                     }
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
+                    fetchBathrooms(currentLatLng.latitude, currentLatLng.longitude, currentFilters.getMaxDistance() * 1000.0);
                 });
     }
 
@@ -178,14 +190,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onSuccess(List<Bathroom> bathrooms) {
                 googleMap.clear();
                 displayedBathrooms.clear();
-                displayedBathrooms.addAll(bathrooms);
-
-                if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                    googleMap.setMyLocationEnabled(true);
-                }
 
                 for (Bathroom bathroom : bathrooms) {
-                    addBathroomMarker(bathroom);
+                    // 1. Rating Filter
+                    if (bathroom.getRating() < currentFilters.getMinRating()) {
+                        continue;
+                    }
+
+                    // 2. Tag Filter (Matches ALL selected tags)
+                    boolean matchesTags = true;
+                    for (String filterTag : currentFilters.getTags()) {
+                        if (!bathroom.hasTag(filterTag.toLowerCase())) {
+                            matchesTags = false;
+                            break;
+                        }
+                    }
+
+                    if (matchesTags) {
+                        displayedBathrooms.add(bathroom);
+                        addBathroomMarker(bathroom);
+                    }
+                }
+                
+                if (displayedBathrooms.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "No bathrooms match your filters", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -198,9 +226,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void addBathroomMarker(Bathroom bathroom) {
         LatLng position = new LatLng(bathroom.getLatitude(), bathroom.getLongitude());
+        
+        // Priority Icon selection
         int iconResId = R.drawable.toilet__icon;
-        if (bathroom.hasTag("cost")) iconResId = R.drawable.dollar_sign_solid_full;
-        else if (bathroom.hasTag("accessible")) iconResId = R.drawable.wheelchair_solid_full;
+        if (bathroom.hasTag("accessible")) iconResId = R.drawable.wheelchair_solid_full;
+        else if (bathroom.hasTag("cost")) iconResId = R.drawable.dollar_sign_solid_full;
 
         Marker marker = googleMap.addMarker(new MarkerOptions()
                 .position(position)
