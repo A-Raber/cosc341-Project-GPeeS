@@ -9,10 +9,12 @@ import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -138,6 +140,52 @@ public class BathroomDialog extends DialogFragment {
             btnAddReview.setOnClickListener(v -> {
                 AddReviewDialog reviewDialog = AddReviewDialog.newInstance(finalBathroom);
                 reviewDialog.show(getParentFragmentManager(), "AddReviewDialog");
+            });
+        }
+
+        EditText editComment = dialog.findViewById(R.id.editComment);
+        Button btnSubmitComment = dialog.findViewById(R.id.btnSubmitComment);
+        if (btnSubmitComment != null) {
+            Bathroom finalBathroom2 = bathroom;
+            btnSubmitComment.setOnClickListener(v -> {
+                if (editComment == null) return;
+
+                String commentText = editComment.getText().toString().trim();
+                if (commentText.isEmpty()) {
+                    Toast.makeText(requireContext(), "Please enter a comment.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (finalBathroom2.getId() == null || finalBathroom2.getId().isEmpty()) {
+                    Toast.makeText(requireContext(), "Unable to submit comment.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                btnSubmitComment.setEnabled(false);
+
+                Comment comment = new Comment("Anonymous", commentText, new java.util.Date());
+
+                dbService.addComment(finalBathroom2.getId(), comment, new DatabaseService.WriteCallback() {
+                    @Override
+                    public void onSuccess() {
+                        if (getActivity() == null) return;
+                        getActivity().runOnUiThread(() -> {
+                            editComment.setText("");
+                            btnSubmitComment.setEnabled(true);
+                            Toast.makeText(requireContext(), "Comment added!", Toast.LENGTH_SHORT).show();
+                            loadComments(dialog, finalBathroom2.getId());
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        if (getActivity() == null) return;
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(requireContext(), "Failed to submit comment.", Toast.LENGTH_SHORT).show();
+                            btnSubmitComment.setEnabled(true);
+                        });
+                    }
+                });
             });
         }
 
