@@ -103,7 +103,7 @@ public class AddReviewDialog extends DialogFragment {
         if (window != null) {
             DisplayMetrics metrics = getResources().getDisplayMetrics();
             int width = (int) (metrics.widthPixels * 0.95);
-            int height = (int) (metrics.heightPixels * 0.75);
+            int height = (int) (metrics.heightPixels * 0.55);
             window.setLayout(width, height);
         }
 
