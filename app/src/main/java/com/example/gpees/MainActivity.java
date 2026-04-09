@@ -114,12 +114,61 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Set up CLOSEST button logic
         findViewById(R.id.btn_closest).setOnClickListener(v -> navigateToClosestBathroom());
+
+        // Set up TOP RATED button logic
+        findViewById(R.id.btn_top_rated).setOnClickListener(v -> navigateToTopRatedBathroom());
     }
 
     @Override
     public void onFilterApplied(FilterCriteria criteria) {
         this.currentFilters = criteria;
         updateLocationAndFetchBathrooms();
+    }
+
+    private void navigateToTopRatedBathroom() {
+        if (currentLatLng == null) {
+            Toast.makeText(this, "Finding your location...", Toast.LENGTH_SHORT).show();
+            updateLocationAndFetchBathrooms();
+            return;
+        }
+
+        if (displayedBathrooms.isEmpty()) {
+            Toast.makeText(this, "No bathrooms found with current filters", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Bathroom topRated = null;
+        float maxRating = -1.0f;
+        double minDistanceForMaxRating = Double.MAX_VALUE;
+
+        // Pass 1: Find the highest rating among currently filtered bathrooms
+        for (Bathroom b : displayedBathrooms) {
+            if (b.getRating() > maxRating) {
+                maxRating = b.getRating();
+            }
+        }
+
+        // Pass 2: Find the closest bathroom that has that maximum rating
+        for (Bathroom b : displayedBathrooms) {
+            if (b.getRating() == maxRating) {
+                double distance = DatabaseService.distanceMeters(
+                        currentLatLng.latitude, currentLatLng.longitude,
+                        b.getLatitude(), b.getLongitude()
+                );
+                if (distance < minDistanceForMaxRating) {
+                    minDistanceForMaxRating = distance;
+                    topRated = b;
+                }
+            }
+        }
+
+        if (topRated != null) {
+            Uri gmmIntentUri = Uri.parse("google.navigation:q=" +
+                    topRated.getLatitude() + "," + topRated.getLongitude() + "&mode=w");
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+            startActivity(mapIntent);
+        }
     }
 
     private void navigateToClosestBathroom() {
