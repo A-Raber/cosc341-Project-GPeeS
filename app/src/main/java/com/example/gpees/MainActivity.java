@@ -11,7 +11,10 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Toast;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
@@ -41,6 +44,7 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.gms.tasks.CancellationTokenSource;
 
 import java.io.IOException;
@@ -61,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LatLng currentLatLng;
     private final List<Bathroom> displayedBathrooms = new ArrayList<>();
     private FilterCriteria currentFilters = new FilterCriteria();
+    private String searchQuery = "";
     private AddBathroomDialog pendingAddDialog;
     private boolean pickingLocation = false;
 
@@ -84,6 +89,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         btnFilter.setOnClickListener(v -> {
             FilterDialog dialog = new FilterDialog(currentFilters, this);
             dialog.show(getSupportFragmentManager(), "FilterDialog");
+        });
+
+        // Initialize Search Bar
+        TextInputEditText etSearch = findViewById(R.id.et_search);
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                searchQuery = s.toString().trim().toLowerCase();
+                fetchBathrooms(currentLatLng.latitude, currentLatLng.longitude, currentFilters.getMaxDistance() * 1000.0);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        etSearch.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                fetchBathrooms(currentLatLng.latitude, currentLatLng.longitude, currentFilters.getMaxDistance() * 1000.0);
+                return true;
+            }
+            return false;
         });
 
         // Hamburger menu popup
@@ -309,8 +338,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             break;
                         }
                     }
+                    if (!matchesTags) continue;
 
-                    if (matchesTags) {
+                    // 3. Search Filter (Name, Address, or Tags)
+                    boolean matchesSearch = searchQuery.isEmpty()
+                            || (bathroom.getName() != null && bathroom.getName().toLowerCase().contains(searchQuery))
+                            || (bathroom.getAddress() != null && bathroom.getAddress().toLowerCase().contains(searchQuery))
+                            || bathroom.getTags().stream().anyMatch(tag -> tag.toLowerCase().contains(searchQuery));
+
+                    if (matchesSearch) {
                         displayedBathrooms.add(bathroom);
                         addBathroomMarker(bathroom);
                     }
