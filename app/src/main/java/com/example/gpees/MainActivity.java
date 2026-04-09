@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
@@ -27,6 +30,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
@@ -367,7 +371,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void addBathroomMarker(Bathroom bathroom) {
         LatLng position = new LatLng(bathroom.getLatitude(), bathroom.getLongitude());
 
-        // Priority Icon selection
         int iconResId = R.drawable.toilet__icon;
         if (bathroom.hasTag("accessible")) iconResId = R.drawable.wheelchair_solid_full;
         else if (bathroom.hasTag("cost")) iconResId = R.drawable.dollar_sign_solid_full;
@@ -375,8 +378,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Marker marker = googleMap.addMarker(new MarkerOptions()
                 .position(position)
                 .title(bathroom.getName())
-                .anchor(0.5f, 0.5f)
-                .icon(getBitmapDescriptorFromVector(this, iconResId)));
+                .anchor(0.5f, 1.0f) // anchor at bottom of pin tail
+                .icon(getMarkerIcon(this, iconResId)));
 
         if (marker != null) marker.setTag(bathroom);
     }
@@ -407,14 +410,56 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 currentFilters.getMaxDistance() * 1000.0);
     }
 
-    private BitmapDescriptor getBitmapDescriptorFromVector(Context context, @DrawableRes int vectorResId) {
-        Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
-        if (vectorDrawable == null) return null;
-        int size = 80;
-        vectorDrawable.setBounds(0, 0, size, size);
-        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+    private BitmapDescriptor getMarkerIcon(Context context, int iconResId) {
+        int markerSize = 160;   // total size of the marker in pixels
+        int pinTailHeight = 30; // the pointy bit at the bottom
+        int circleSize = markerSize - pinTailHeight;
+        int iconSize = (int) (circleSize * 0.55); // icon takes up 55% of circle
+        int strokeWidth = 8;
+        String iconColour = "#4A90D9";
+
+        Bitmap bitmap = Bitmap.createBitmap(markerSize, markerSize, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
-        vectorDrawable.draw(canvas);
+
+        Paint borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        borderPaint.setColor(Color.parseColor(iconColour)); // blue border
+        borderPaint.setStyle(Paint.Style.FILL);
+
+        Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        fillPaint.setColor(Color.WHITE);
+        fillPaint.setStyle(Paint.Style.FILL);
+
+        // Draw the drop pin shape (circle + triangle tail)
+        Path pinPath = new Path();
+        float cx = markerSize / 2f;
+        float cy = circleSize / 2f;
+        float radius = circleSize / 2f;
+
+        // Outer blue circle
+        canvas.drawCircle(cx, cy, radius, borderPaint);
+        // Inner white circle
+        canvas.drawCircle(cx, cy, radius - strokeWidth, fillPaint);
+
+        // Triangle tail pointing down
+        Paint tailPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        tailPaint.setColor(Color.parseColor(iconColour));
+        tailPaint.setStyle(Paint.Style.FILL);
+        pinPath.moveTo(cx - 18, circleSize - 10);
+        pinPath.lineTo(cx + 18, circleSize - 10);
+        pinPath.lineTo(cx, markerSize);
+        pinPath.close();
+        canvas.drawPath(pinPath, tailPaint);
+
+        // Draw the icon centered in the circle
+        Drawable drawable = ContextCompat.getDrawable(context, iconResId);
+        if (drawable != null) {
+            int left = (int) (cx - iconSize / 2f);
+            int top = (int) (cy - iconSize / 2f);
+            drawable.setBounds(left, top, left + iconSize, top + iconSize);
+            DrawableCompat.setTint(drawable, Color.parseColor(iconColour)); // icon same color as border
+            drawable.draw(canvas);
+        }
+
         return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
