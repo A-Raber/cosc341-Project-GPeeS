@@ -78,7 +78,9 @@
                 android:layout_marginBottom="24dp"
                 android:numStars="5"
                 android:rating="0"
-                android:stepSize="1" />
+                android:stepSize="1"
+                android:progressTint="#FFD700"
+                android:secondaryProgressTint="#FFD700"/>
 
             <!-- Review text label -->
             <TextView
