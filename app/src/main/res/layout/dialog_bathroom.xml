@@ -71,6 +71,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
+                android:background="@drawable/tag_border"
+                android:gravity="center"
                 android:orientation="horizontal"
                 android:padding="8dp">
 
