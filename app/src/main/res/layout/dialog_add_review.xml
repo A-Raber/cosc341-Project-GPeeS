@@ -110,19 +110,22 @@
                 android:orientation="horizontal">
 
                 <Button
+                    android:id="@+id/btnCancelReview"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cancel"
+                    android:textColor="@color/blue" />
+
+                <Button
                     android:id="@+id/btnSubmitReview"
+                    style="@style/Widget.Material3.Button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="12dp"
-                    android:text="SUBMIT"
-                    app:backgroundTint="@color/blue" />
-
-                <Button
-                    android:id="@+id/btnCancelReview"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="CANCEL"
-                    app:backgroundTint="@color/blue" />
+                    android:text="Submit"
+                    app:backgroundTint="@color/blue"
+                    app:cornerRadius="20dp" />
 
             </LinearLayout>
 
