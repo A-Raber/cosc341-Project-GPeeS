@@ -8,10 +8,12 @@
 
     <TextView
         android:id="@+id/bathroomNameText"
-        android:layout_width="wrap_content"
-        android:layout_height="64dp"
+        android:layout_width="330dp"
+        android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         android:text="Bathroom name"
         android:textSize="34sp"
         app:layout_constraintStart_toStartOf="parent"
@@ -258,6 +260,13 @@
                 android:text="+ Add Review"
                 app:backgroundTint="@color/blue"/>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="8dp"
+                android:text="Top Review:"
+                android:textSize="16sp" />
+
             <!-- Recent Review Preview -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -295,6 +304,25 @@
                 android:textSize="24sp"
                 android:textStyle="bold" />
 
+            <!-- Add a Comment -->
+            <EditText
+                android:id="@+id/editComment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:hint="Add a comment..."
+                android:inputType="textMultiLine"
+                android:minLines="2" />
+
+            <Button
+                android:id="@+id/btnSubmitComment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginBottom="16dp"
+                android:text="Submit"
+                app:backgroundTint="@color/blue"/>
+
             <!-- Comments List -->
             <LinearLayout
                 android:id="@+id/commentsContainer"
@@ -325,24 +353,7 @@
 
             </LinearLayout>
 
-            <!-- Add a Comment -->
-            <EditText
-                android:id="@+id/editComment"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:hint="Add a comment..."
-                android:inputType="textMultiLine"
-                android:minLines="2" />
 
-            <Button
-                android:id="@+id/btnSubmitComment"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:layout_marginBottom="16dp"
-                android:text="Submit"
-                app:backgroundTint="@color/blue"/>
 
         </LinearLayout>
 
