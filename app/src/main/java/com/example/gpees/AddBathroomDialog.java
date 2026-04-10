@@ -181,6 +181,7 @@ public class AddBathroomDialog extends DialogFragment {
             int width = (int) (metrics.widthPixels * 0.95);
             int height = (int) (metrics.heightPixels * 0.65);
             window.setLayout(width, height);
+            window.setBackgroundDrawableResource(android.R.color.transparent);
         }
 
         return dialog;

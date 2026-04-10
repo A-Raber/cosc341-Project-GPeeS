@@ -2,8 +2,10 @@ package com.example.gpees;
 
 import android.app.Dialog;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -59,6 +61,11 @@ public class ReviewsDialog extends DialogFragment {
         Button btnClose = dialog.findViewById(R.id.btnClose);
         if (btnClose != null) {
             btnClose.setOnClickListener(v -> dismiss());
+        }
+
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawableResource(android.R.color.transparent);
         }
 
         return dialog;

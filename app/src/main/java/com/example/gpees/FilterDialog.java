@@ -27,8 +27,8 @@ public class FilterDialog extends DialogFragment {
 
     // Discrete steps: 100m increments to 1km, then larger jumps
     private final float[] distanceSteps = {
-            0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f,
-            2.0f, 5.0f, 10.0f, 25.0f, 50.0f
+            0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.7f, 1.0f, 2.0f, 3.0f, 5.0f,
+            7.0f, 10.0f, 20.0f, 30.0f, 50.0f
     };
 
     private RatingBar ratingBar;

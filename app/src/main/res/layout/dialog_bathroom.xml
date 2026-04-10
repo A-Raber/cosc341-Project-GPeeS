@@ -1,387 +1,397 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:backgroundTint="@color/blue">
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="4dp"
+    app:contentPadding="8dp">
 
-    <TextView
-        android:id="@+id/bathroomNameText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:paddingStart="16dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
-        android:text="Bathroom name"
-        android:textSize="34sp"
-        app:layout_constraintEnd_toStartOf="@+id/btnClose"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <RatingBar
-        android:id="@+id/ratingBar"
-        style="@android:style/Widget.DeviceDefault.Light.RatingBar.Indicator"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:numStars="5"
-        android:rating="3"
-        android:progressTint="#FFD700"
-        android:secondaryProgressTint="#FFD700"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/bathroomNameText" />
-
-    <Button
-        android:id="@+id/seeReviewsButton"
-        android:layout_width="wrap_content"
-        android:layout_height="36dp"
-        android:layout_marginEnd="32dp"
-        android:onClick="showReviews"
-        android:text="See Reviews"
-        app:backgroundTint="@color/blue"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/bathroomNameText" />
-
-    <ScrollView
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ratingBar">
+        android:layout_height="match_parent">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/bathroomNameText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:text="Bathroom name"
+            android:textSize="34sp"
+            app:layout_constraintEnd_toStartOf="@+id/btnClose"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <RatingBar
+            android:id="@+id/ratingBar"
+            style="@android:style/Widget.DeviceDefault.Light.RatingBar.Indicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:numStars="5"
+            android:rating="3"
+            android:progressTint="#FFD700"
+            android:secondaryProgressTint="#FFD700"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/bathroomNameText" />
+
+        <Button
+            android:id="@+id/seeReviewsButton"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginEnd="32dp"
+            android:onClick="showReviews"
+            android:text="See Reviews"
+            android:textColor="@color/blue"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/bathroomNameText" />
+
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <!-- Tags -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="TAGS"
-                android:textSize="24sp"
-                android:textStyle="bold" />
+            android:layout_height="0dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/ratingBar">
 
             <LinearLayout
-                android:id="@+id/tagsContainer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:background="@drawable/tag_border"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:padding="8dp">
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="16dp">
 
-            </LinearLayout>
-
-            <!-- Address -->
-            <TextView
-                android:id="@+id/bathroomAddressText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:text="Address: 123 Main St."
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/bathroomDistance"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:text="13.5 km from you"
-                android:textSize="15sp" />
-
-            <!-- Go Button -->
-            <Button
-                android:id="@+id/btnGo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="16dp"
-                android:text="GO"
-                app:backgroundTint="@color/blue"/>
-
-            <!-- Reviews -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Reviews"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <RatingBar
-                    android:id="@+id/bottomRatingBar"
-                    style="@style/Widget.AppCompat.RatingBar.Small"
+                <!-- Tags -->
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:isIndicator="true"
-                    android:numStars="5"
-                    android:rating="3.5"
-                    android:stepSize="0.5"
-                    android:progressTint="#FFD700"
-                    android:secondaryProgressTint="#FFD700" />
+                    android:layout_marginBottom="8dp"
+                    android:text="TAGS"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/tagsContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:background="@drawable/tag_border"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:padding="8dp">
+
+                </LinearLayout>
+
+                <!-- Address -->
+                <TextView
+                    android:id="@+id/bathroomAddressText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:text="Address: 123 Main St."
+                    android:textSize="16sp" />
 
                 <TextView
-                    android:id="@+id/bottomRatingText"
+                    android:id="@+id/bathroomDistance"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="3.5 out of 5"
-                    android:textSize="14sp" />
+                    android:layout_marginBottom="16dp"
+                    android:text="13.5 km from you"
+                    android:textSize="15sp" />
 
-            </LinearLayout>
-
-            <!-- Rating Breakdown Bars (5 down to 1) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="4dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="16dp"
-                        android:layout_height="wrap_content"
-                        android:text="5" />
-
-                    <ProgressBar
-                        android:id="@+id/barFive"
-                        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="8dp"
-                        android:layout_marginStart="8dp"
-                        android:progress="80" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="4dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="16dp"
-                        android:layout_height="wrap_content"
-                        android:text="4" />
-
-                    <ProgressBar
-                        android:id="@+id/barFour"
-                        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="8dp"
-                        android:layout_marginStart="8dp"
-                        android:progress="60" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="4dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="16dp"
-                        android:layout_height="wrap_content"
-                        android:text="3" />
-
-                    <ProgressBar
-                        android:id="@+id/barThree"
-                        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="8dp"
-                        android:layout_marginStart="8dp"
-                        android:progress="40" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="4dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="16dp"
-                        android:layout_height="wrap_content"
-                        android:text="2" />
-
-                    <ProgressBar
-                        android:id="@+id/barTwo"
-                        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="8dp"
-                        android:layout_marginStart="8dp"
-                        android:progress="20" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="16dp"
-                        android:layout_height="wrap_content"
-                        android:text="1" />
-
-                    <ProgressBar
-                        android:id="@+id/barOne"
-                        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="8dp"
-                        android:layout_marginStart="8dp"
-                        android:progress="10" />
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Add Review Button -->
-            <Button
-                android:id="@+id/btnAddReview"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="12dp"
-                android:text="+ Add Review"
-                app:backgroundTint="@color/blue"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingBottom="8dp"
-                android:text="Top Review:"
-                android:textSize="16sp" />
-
-            <!-- Recent Review Preview -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <RatingBar
-                    android:id="@+id/previewRatingBar"
-                    style="@style/Widget.AppCompat.RatingBar.Small"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:isIndicator="true"
-                    android:numStars="5"
-                    android:rating="3"
-                    android:stepSize="0.5"
-                    android:progressTint="#FFD700"
-                    android:secondaryProgressTint="#FFD700" />
-
-                <TextView
-                    android:id="@+id/previewReviewText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="'It works.'"
-                    android:textSize="14sp" />
-
-            </LinearLayout>
-
-            <!-- Comments Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="COMMENTS"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <EditText
-                    android:id="@+id/editComment"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:hint="Add a comment..."
-                    android:inputType="textMultiLine"
-                    android:minLines="2" />
-
+                <!-- Go Button -->
                 <Button
-                    android:id="@+id/btnSubmitComment"
-                    android:layout_width="96dp"
+                    android:id="@+id/btnGo"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="end"
-                    android:text="Submit"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="16dp"
+                    android:text="GO"
                     app:backgroundTint="@color/blue"/>
-            </LinearLayout>
 
-            <!-- Comments List -->
-            <LinearLayout
-                android:id="@+id/commentsContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:background="@android:drawable/dialog_holo_light_frame"
-                android:orientation="vertical">
-
+                <!-- Reviews -->
                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Reviews"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <RatingBar
+                        android:id="@+id/bottomRatingBar"
+                        style="@style/Widget.AppCompat.RatingBar.Small"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:isIndicator="true"
+                        android:numStars="5"
+                        android:rating="3.5"
+                        android:stepSize="0.5"
+                        android:progressTint="#FFD700"
+                        android:secondaryProgressTint="#FFD700" />
+
+                    <TextView
+                        android:id="@+id/bottomRatingText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3.5 out of 5"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
+
+                <!-- Rating Breakdown Bars (5 down to 1) -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
-                    android:text="8/13/25  Anonymous said 'It's never clean'"
-                    android:textSize="13sp" />
+                    android:orientation="vertical">
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#CCCCCC" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="16dp"
+                            android:layout_height="wrap_content"
+                            android:text="5" />
+
+                        <ProgressBar
+                            android:id="@+id/barFive"
+                            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="8dp"
+                            android:layout_marginStart="8dp"
+                            android:progress="80" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="16dp"
+                            android:layout_height="wrap_content"
+                            android:text="4" />
+
+                        <ProgressBar
+                            android:id="@+id/barFour"
+                            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="8dp"
+                            android:layout_marginStart="8dp"
+                            android:progress="60" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="16dp"
+                            android:layout_height="wrap_content"
+                            android:text="3" />
+
+                        <ProgressBar
+                            android:id="@+id/barThree"
+                            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="8dp"
+                            android:layout_marginStart="8dp"
+                            android:progress="40" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="16dp"
+                            android:layout_height="wrap_content"
+                            android:text="2" />
+
+                        <ProgressBar
+                            android:id="@+id/barTwo"
+                            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="8dp"
+                            android:layout_marginStart="8dp"
+                            android:progress="20" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="16dp"
+                            android:layout_height="wrap_content"
+                            android:text="1" />
+
+                        <ProgressBar
+                            android:id="@+id/barOne"
+                            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="8dp"
+                            android:layout_marginStart="8dp"
+                            android:progress="10" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- Add Review Button -->
+                <Button
+                    android:id="@+id/btnAddReview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="12dp"
+                    android:text="+ Add Review"
+                    app:backgroundTint="@color/blue"/>
 
                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="8dp"
+                    android:text="Top Review:"
+                    android:textSize="16sp" />
+
+                <!-- Recent Review Preview -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
-                    android:text="8/01/25  toiletking5 said 'Don't use the last stall.'"
-                    android:textSize="13sp" />
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <RatingBar
+                        android:id="@+id/previewRatingBar"
+                        style="@style/Widget.AppCompat.RatingBar.Small"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:isIndicator="true"
+                        android:numStars="5"
+                        android:rating="3"
+                        android:stepSize="0.5"
+                        android:progressTint="#FFD700"
+                        android:secondaryProgressTint="#FFD700" />
+
+                    <TextView
+                        android:id="@+id/previewReviewText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="'It works.'"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
+
+                <!-- Comments Section -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="COMMENTS"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <EditText
+                        android:id="@+id/editComment"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="Add a comment..."
+                        android:inputType="textMultiLine"
+                        android:minLines="2" />
+
+                    <Button
+                        android:id="@+id/btnSubmitComment"
+                        android:layout_width="96dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:text="Submit"
+                        app:backgroundTint="@color/blue"/>
+                </LinearLayout>
+
+                <!-- Comments List -->
+                <LinearLayout
+                    android:id="@+id/commentsContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:background="@android:drawable/dialog_holo_light_frame"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:text="8/13/25  Anonymous said 'It's never clean'"
+                        android:textSize="13sp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#CCCCCC" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:text="8/01/25  toiletking5 said 'Don't use the last stall.'"
+                        android:textSize="13sp" />
+
+                </LinearLayout>
+
+
 
             </LinearLayout>
 
+        </ScrollView>
 
-
-        </LinearLayout>
-
-    </ScrollView>
-
-    <Button
-        android:id="@+id/btnClose"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="7dp"
-        android:layout_marginEnd="16dp"
-        android:text="X"
-        android:textSize="18sp"
-        android:padding="0dp"
-        app:backgroundTint="@color/blue"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <Button
+            android:id="@+id/btnClose"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="7dp"
+            android:layout_marginEnd="16dp"
+            android:padding="0dp"
+            android:text="✕"
+            android:textColor="@color/blue"
+            android:textSize="24sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>
