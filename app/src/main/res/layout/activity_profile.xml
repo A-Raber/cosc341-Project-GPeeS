@@ -61,14 +61,6 @@
                 android:textColor="#FFFFFF"
                 android:textSize="14sp" />
 
-            <Button
-                android:id="@+id/btn_edit"
-                android:layout_width="100dp"
-                android:layout_height="36dp"
-                android:layout_marginTop="12dp"
-                android:backgroundTint="#FFFFFF"
-                android:text="Edit"
-                android:textColor="#040404" />
         </LinearLayout>
     </LinearLayout>
         <!-- Reviews section label -->
