@@ -105,6 +105,7 @@ public class AddReviewDialog extends DialogFragment {
             int width = (int) (metrics.widthPixels * 0.95);
             int height = (int) (metrics.heightPixels * 0.55);
             window.setLayout(width, height);
+            window.setBackgroundDrawableResource(android.R.color.transparent);
         }
 
         return dialog;
