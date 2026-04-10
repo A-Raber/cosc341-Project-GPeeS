@@ -96,7 +96,7 @@ public class ProfileActivity extends AppCompatActivity {
                 tvHeader.setText(item[0]);
                 tvHeader.setTextSize(13);
                 tvHeader.setTypeface(null, android.graphics.Typeface.BOLD);
-                tvHeader.setTextColor(0xFF2C6E49);
+                tvHeader.setTextColor(0xFF444444);
                 tvHeader.setPadding(0, 16, 0, 4);
                 container.addView(tvHeader);
 
