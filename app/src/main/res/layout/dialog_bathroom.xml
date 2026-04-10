@@ -8,7 +8,7 @@
 
     <TextView
         android:id="@+id/bathroomNameText"
-        android:layout_width="330dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:paddingStart="16dp"
@@ -16,6 +16,7 @@
         android:paddingBottom="8dp"
         android:text="Bathroom name"
         android:textSize="34sp"
+        app:layout_constraintEnd_toStartOf="@+id/btnClose"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
